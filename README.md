@@ -17,7 +17,8 @@
 
 ##  Скриншот / Screenshot
 
-![Network Simulator Interface](images\test.png)
+![Network Simulator Interface](./images/test.png)
+
 *Основной интерфейс симулятора с планом офиса / Main simulator interface with office layout*
 
 ---
