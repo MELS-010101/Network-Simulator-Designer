@@ -17,8 +17,12 @@
 
 ##  Скриншот / Screenshot
 
+<<<<<<< HEAD
 ![Network Simulator Interface](images/test.png)
 
+=======
+![Network Simulator Interface]([https://i.imgur.com/your-screenshot.png](https://github.com/MELS-010101/Network-Simulator-Designer/blob/main/test.png))
+>>>>>>> 1182e84bd19444b8a11d5d2936142123101bba5e
 *Основной интерфейс симулятора с планом офиса / Main simulator interface with office layout*
 
 ---
@@ -488,9 +492,21 @@ We welcome contributions to the project! If you found a bug or want to add a new
 ⭐ **Поставьте звезду на GitHub, если проект полезен!** ⭐
 
 **🇷🇺 Сделано в России | 🇬🇧 Made in Russia**
+<<<<<<< HEAD
 
 ---
 
 [![GitHub stars](https://img.shields.io/github/stars/MELS-010101/Network-Simulator-Designer?style=social)](https://github.com/MELS-010101/Network-Simulator-Designer/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/MELS-010101/Network-Simulator-Designer?style=social)](https://github.com/MELS-010101/Network-Simulator-Designer/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/MELS-010101/Network-Simulator-Designer)](https://github.com/MELS-010101/Network-Simulator-Designer/issues)
+=======
+
+---
+
+[![GitHub stars](https://img.shields.io/github/stars/MELS-010101/Network-Simulator-Designer?style=social)](https://github.com/MELS-010101/Network-Simulator-Designer/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/MELS-010101/Network-Simulator-Designer?style=social)](https://github.com/MELS-010101/Network-Simulator-Designer/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/MELS-010101/Network-Simulator-Designer)](https://github.com/MELS-010101/Network-Simulator-Designer/issues)
+
+</div>
+
+>>>>>>> 1182e84bd19444b8a11d5d2936142123101bba5e
