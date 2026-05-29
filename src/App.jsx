@@ -45,6 +45,10 @@ const customCSS = `
     70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
   }
+  @keyframes explode {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  }
   .modal-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -651,7 +655,7 @@ const portStyle = {
 
 // ==================== ТИПЫ УСТРОЙСТВ ====================
 const DEVICE_TYPES = {
-  PC: { type: 'pc', label: 'ПК', icon: '🖥️' },
+  PC: { type: 'pc', label: 'ПК', icon: '️' },
   LAPTOP: { type: 'laptop', label: 'Ноутбук', icon: '💻' },
   PRINTER: { type: 'printer', label: 'Принтер', icon: '🖨️' },
   SERVER: { type: 'server', label: 'Сервер', icon: '🖧' },
@@ -666,8 +670,8 @@ const DEVICE_TYPES = {
 const CustomNode = ({ data, selected, id, isCompromised }) => {
   // Для роутера отображаем LAN/WAN IP под иконкой, для коммутаторов L2 - ничего не показываем
   const showIp = data.type === 'router' || (data.type && !String(data.type).includes('switch'));
-  const displayIp = data.type === 'router' 
-    ? (data.lanIp || data.ip || '') 
+  const displayIp = data.type === 'router'
+    ? (data.lanIp || data.ip || '')
     : (data.ip || '');
 
   // Определяем цвет рамки в зависимости от типа устройства
@@ -675,7 +679,7 @@ const CustomNode = ({ data, selected, id, isCompromised }) => {
   const isFirewall = data.type === 'firewall';
   const firewallActive = data.isActive !== false; // По умолчанию активен
   const isServer = data.type === 'server';
-  
+
   let nodeBorderColor = '#4a5568';
   if (isHacker) {
     nodeBorderColor = '#ef4444'; // Красный для хакера
@@ -686,10 +690,10 @@ const CustomNode = ({ data, selected, id, isCompromised }) => {
   }
 
   return (
-    <div style={{ 
-      ...styles.node, 
-      ...(selected ? styles.nodeSelected : {}), 
-      borderColor: nodeBorderColor, 
+    <div style={{
+      ...styles.node,
+      ...(selected ? styles.nodeSelected : {}),
+      borderColor: nodeBorderColor,
       borderWidth: isHacker || isFirewall || isCompromised ? '3px' : '2px',
       background: isCompromised ? '#450a0a' : '#2d3748',
       boxShadow: isCompromised ? '0 0 20px rgba(239, 68, 68, 0.8)' : (selected ? '0 0 15px rgba(66, 153, 225, 0.5)' : 'none'),
@@ -740,10 +744,10 @@ const CustomNode = ({ data, selected, id, isCompromised }) => {
       )}
       {/* Индикатор заражения для сервера */}
       {isCompromised && (
-        <div style={{ 
-          marginTop: '6px', 
-          fontSize: '9px', 
-          color: '#fca5a5', 
+        <div style={{
+          marginTop: '6px',
+          fontSize: '9px',
+          color: '#fca5a5',
           fontWeight: 'bold',
           background: 'rgba(239, 68, 68, 0.2)',
           padding: '3px 6px',
@@ -792,8 +796,8 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
   const terminalEndRef = useRef(null);
 
   // Строгая проверка: является ли устройство L2 коммутатором
-  const isL2Switch = 
-    node.data.type?.toLowerCase().includes('switch') || 
+  const isL2Switch =
+    node.data.type?.toLowerCase().includes('switch') ||
     node.data.label?.toLowerCase().includes('коммутатор');
 
   // Инициализация VLAN для коммутатора L2
@@ -807,7 +811,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
   const [switchVlans, setSwitchVlans] = useState(getSwitchVlans());
 
   // ФИЛЬТРАЦИЯ УСТРОЙСТВ С ХОЛСТА: отфильтровываем только конечные узлы (ПК, ноутбуки, серверы)
-  const availableEndDevices = (nodes || []).filter(n => 
+  const availableEndDevices = (nodes || []).filter(n =>
     ['pc', 'laptop', 'server'].includes(n.data?.type) ||
     n.data?.label?.toLowerCase().includes('пк') ||
     n.data?.label?.toLowerCase().includes('ноутбук') ||
@@ -822,7 +826,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
         ...node.data,
         vlans: (node.data.vlans || [{id:1, name:'default'}]).map(vlan => {
           if (vlan.id === vlanId) {
-            return isChecked 
+            return isChecked
               ? { ...vlan, assignedDevices: [...(vlan.assignedDevices || []), deviceId] }
               : { ...vlan, assignedDevices: (vlan.assignedDevices || []).filter(id => id !== deviceId) };
           }
@@ -830,7 +834,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
         })
       }
     } : node));
-    
+
     // ✅ КРИТИЧНО: Записываем VLAN ID в данные самого ПК (конечного устройства)
     setNodes(nds => nds.map(node => String(node.id) === String(deviceId) ? {
       ...node,
@@ -840,7 +844,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
         vlanId: vlanId // Также сохраняем в vlanId для совместимости
       }
     } : node));
-    
+
     // Синхронизируем локальный стейт открытого окна
     setSelectedNode(prev => prev && String(prev.id) === String(switchId) ? {
       ...prev,
@@ -891,24 +895,22 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
       alert("VLAN ID должен быть числом от 1 до 4094");
       return;
     }
-
     setNodes(nds => nds.map(n => String(n.id) === String(nodeId) ? {
-      ...n, 
-      data: { 
-        ...n.data, 
-        vlans: [...(n.data.vlans || [{id:1, name:'default'}]), {id: pId, name: vlanName || `VLAN_${pId}`}] 
+      ...n,
+      data: {
+        ...n.data,
+        vlans: [...(n.data.vlans || [{id:1, name:'default'}]), {id: pId, name: vlanName || `VLAN_${pId}`}]
       }
     } : n));
-    
+
     // Принудительно синхронизируем локальный стейт открытого окна для мгновенного рендера
     setSelectedNode(prev => prev && String(prev.id) === String(nodeId) ? {
-      ...prev, 
-      data: { 
-        ...prev.data, 
-        vlans: [...(prev.data.vlans || [{id:1, name:'default'}]), {id: pId, name: vlanName || `VLAN_${pId}`}] 
+      ...prev,
+      data: {
+        ...prev.data,
+        vlans: [...(prev.data.vlans || [{id:1, name:'default'}]), {id: pId, name: vlanName || `VLAN_${pId}`}]
       }
     } : prev);
-    
     onAddLog(`📝 ${node.data.label}: добавлен VLAN ${pId} (${vlanName || `VLAN_${pId}`})`);
   };
 
@@ -918,24 +920,22 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
       alert('Нельзя удалить VLAN 1 (по умолчанию)');
       return;
     }
-    
     setNodes(nds => nds.map(n => String(n.id) === String(node.id) ? {
       ...n,
-      data: { 
-        ...n.data, 
-        vlans: (n.data.vlans || [{id:1, name:'default'}]).filter(v => v.id !== vlanId) 
+      data: {
+        ...n.data,
+        vlans: (n.data.vlans || [{id:1, name:'default'}]).filter(v => v.id !== vlanId)
       }
     } : n));
-    
+
     // Синхронизируем локальный стейт открытого окна
     setSelectedNode(prev => prev && String(prev.id) === String(node.id) ? {
       ...prev,
-      data: { 
-        ...prev.data, 
-        vlans: (prev.data.vlans || [{id:1, name:'default'}]).filter(v => v.id !== vlanId) 
+      data: {
+        ...prev.data,
+        vlans: (prev.data.vlans || [{id:1, name:'default'}]).filter(v => v.id !== vlanId)
       }
     } : prev);
-    
     onAddLog(`📝 ${node.data.label}: удален VLAN ${vlanId}`);
   };
 
@@ -943,14 +943,12 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
   const handleTerminalCommand = (command) => {
     const cmd = command.trim().toLowerCase();
     const args = cmd.split(' ');
-    
     setTerminalLines(prev => [...prev, `C:\\Users\\Admin> ${command}`]);
 
     if (args[0] === 'ipconfig') {
       const ip = node.data.config?.ip || node.data.ip || 'Не назначен';
       const subnet = node.data.config?.subnet || '255.255.255.0';
       const gateway = node.data.config?.gateway || '192.168.1.1';
-      
       setTerminalLines(prev => [...prev, '',
         'Адаптер Ethernet:',
         `   IPv4-адрес. . . . . . . . . . : ${ip}`,
@@ -964,9 +962,8 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
         setTerminalLines(prev => [...prev, 'Ошибка: укажите IP-адрес для ping', '']);
         return;
       }
-      
       setTerminalLines(prev => [...prev, `Ping для ${targetIp} с 32 байтами данных:`]);
-      
+
       // Проверяем, существует ли устройство с таким IP
       const targetNode = nodes.find(n => {
         const nodeIp = n.data.config?.ip || n.data.ip;
@@ -995,7 +992,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
 
       // Проверяем, есть ли путь от текущего устройства к целевому
       const hasPath = checkConnectionBetweenNodes(node.id, targetNode.id, edges);
-
       if (!hasPath) {
         // Нет физического соединения
         setTimeout(() => {
@@ -1019,19 +1015,18 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
       // ✅ ЕСТЬ ФИЗИЧЕСКИЙ ПУТЬ - ПРОВЕРЯЕМ VLAN ИЗОЛЯЦИЮ
       const sourceVlan = node.data.vlanId || node.data.vlan || 1;
       const targetVlan = targetNode.data.vlanId || targetNode.data.vlan || 1;
-      
+
       // Находим общий коммутатор между устройствами
       const sourceEdges = edges.filter(e => e.source === node.id || e.target === node.id);
       const targetEdges = edges.filter(e => e.source === targetNode.id || e.target === targetNode.id);
-      
       let commonSwitch = null;
       for (const se of sourceEdges) {
         const nextId = se.source === node.id ? se.target : se.source;
         const nextNode = nodes.find(n => n.id === nextId);
-        const isSwitch = nextNode?.data?.type?.toLowerCase().includes('switch') || 
+        const isSwitch = nextNode?.data?.type?.toLowerCase().includes('switch') ||
                          nextNode?.data?.label?.toLowerCase().includes('коммутатор');
         if (nextNode && isSwitch) {
-          const isTargetConnected = targetEdges.some(e => 
+          const isTargetConnected = targetEdges.some(e =>
             (e.source === targetNode.id && e.target === nextId) ||
             (e.target === targetNode.id && e.source === nextId)
           );
@@ -1058,10 +1053,10 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
             ]);
           }, 2000);
         }, 100);
-        onAddLog(`🚫 [VLAN Изоляция] Коммутатор заблокировал трафик. ${node.data.label} (VLAN ${sourceVlan}) и ${targetNode.data.label} (VLAN ${targetVlan}) изолированы друг от друга.`);
+        onAddLog(` [VLAN Изоляция] Коммутатор заблокировал трафик. ${node.data.label} (VLAN ${sourceVlan}) и ${targetNode.data.label} (VLAN ${targetVlan}) изолированы друг от друга.`);
         return;
       }
-      
+
       // ✅ VLAN совпадают или разные коммутаторы - пинг проходит
       setTimeout(() => {
         for (let i = 0; i < 4; i++) {
@@ -1070,7 +1065,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
             setTerminalLines(prev => [...prev, `Ответ от ${targetIp}: число байт=32 время=${time}мс TTL=64`]);
           }, i * 500);
         }
-        
         setTimeout(() => {
           setTerminalLines(prev => [...prev, '',
             `Статистика Ping для ${targetIp}:`,
@@ -1079,9 +1073,8 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
           ]);
         }, 2000);
       }, 100);
-      
       onAddLog(`✅ [Ping] Успешный ответ от ${targetIp} (VLAN ${targetVlan})`);
-      
+
     } else if (args[0] === 'help') {
       setTerminalLines(prev => [...prev, '',
         'Доступные команды:',
@@ -1118,9 +1111,9 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
           </div>
 
           {/* Форма создания нового VLAN */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '10px', 
+          <div style={{
+            display: 'flex',
+            gap: '10px',
             marginBottom: '20px',
             padding: '15px',
             background: '#2d3748',
@@ -1155,7 +1148,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                   marginTop: '0',
                   whiteSpace: 'nowrap'
                 }}
-                onClick={handleAddVlan}
+                onClick={() => handleAddVlan(node.id, newVlanId, newVlanName)}
               >
                 ➕ Добавить
               </button>
@@ -1165,7 +1158,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
           {/* Таблица VLAN с привязкой устройств */}
           <div className="vlan-settings-section text-white p-4">
             <h4 className="text-sm font-medium mb-3 text-gray-300">Настройка VLAN и привязка ПК</h4>
-            
             <div className="flex gap-2 mb-4">
               <input id="vlan-id-input" type="number" placeholder="ID (1-4094)" className="w-24 px-3 py-2 bg-[#2a2f3b] border border-gray-600 rounded text-white" min="1" max="4094" />
               <input id="vlan-name-input" type="text" placeholder="Имя VLAN" className="flex-1 px-3 py-2 bg-[#2a2f3b] border border-gray-600 rounded text-white" />
@@ -1173,7 +1165,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                 const idInput = document.getElementById('vlan-id-input');
                 const nameInput = document.getElementById('vlan-name-input');
                 if (idInput && nameInput && idInput.value) {
-                  handleAddVlan(selectedNode.id, idInput.value, nameInput.value || `VLAN_${idInput.value}`);
+                  handleAddVlan(node.id, idInput.value, nameInput.value || `VLAN_${idInput.value}`);
                   idInput.value = '';
                   nameInput.value = '';
                 }
@@ -1191,7 +1183,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                   </tr>
                 </thead>
                 <tbody>
-                  {(selectedNode?.data?.vlans || [{ id: 1, name: 'default' }]).map((vlan) => (
+                  {(node.data.vlans || [{ id: 1, name: 'default' }]).map((vlan) => (
                     <tr key={vlan.id} className="border-b border-gray-700">
                       <td className="px-4 py-2 font-mono text-blue-400">{vlan.id}</td>
                       <td className="px-4 py-2">{vlan.name}</td>
@@ -1213,42 +1205,36 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                 </tbody>
               </table>
             </div>
-            
+
             {/* БЛОК НАЗНАЧЕНИЯ ПК В VLAN */}
             <div className="mt-5 pt-4 border-t border-gray-700">
               <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
                 Назначение портов (Привязка компьютеров к VLAN)
               </h5>
-              
               {/* Собираем все ПК с холста */}
               {(() => {
-                const pcsOnCanvas = nodes ? nodes.filter(n => 
+                const pcsOnCanvas = nodes ? nodes.filter(n =>
                   n.data?.type === 'pc' || n.data?.type === 'laptop' ||
                   n.data?.label?.toLowerCase().includes('пк') || n.data?.label?.toLowerCase().includes('ноутбук')
                 ) : [];
-
                 if (pcsOnCanvas.length === 0) {
                   return <p className="text-xs text-gray-500 italic">Нет доступных ПК на холсте для настройки портов.</p>;
                 }
-
                 return (
                   <div className="grid grid-cols-1 gap-3 max-h-40 overflow-y-auto pr-2">
                     {pcsOnCanvas.map(pc => (
                       <div key={pc.id} className="flex items-center justify-between bg-[#1a1d24] p-2 rounded border border-gray-700">
                         <span className="text-sm font-medium text-gray-300">{pc.data?.label || 'Компьютер'}</span>
-                        
                         {/* Выпадающий список для выбора VLAN для этого конкретного ПК */}
-                        <select 
+                        <select
                           className="bg-[#242936] text-xs text-white border border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
-                          value={pc.data?.vlan || pc.data?.vlanId || ((nodes.find(n => n.id === selectedNode?.id)?.data?.vlans) || []).find(v => v.assignedDevices?.includes(pc.id))?.id || 1}
+                          value={pc.data?.vlan || pc.data?.vlanId || ((nodes.find(n => n.id === node.id)?.data?.vlans) || []).find(v => v.assignedDevices?.includes(pc.id))?.id || 1}
                           onChange={(e) => {
                             const targetVlanId = parseInt(e.target.value);
-                            if (typeof handleToggleDeviceInVlan === 'function') {
-                              handleToggleDeviceInVlan(selectedNode.id, targetVlanId, pc.id, true);
-                            }
+                            handleToggleDeviceInVlan(node.id, targetVlanId, pc.id, true);
                           }}
                         >
-                          {((nodes.find(n => n.id === selectedNode?.id)?.data?.vlans) || [{id: 1, name: 'default'}]).map(v => (
+                          {((nodes.find(n => n.id === node.id)?.data?.vlans) || [{id: 1, name: 'default'}]).map(v => (
                             <option key={v.id} value={v.id}>
                               VLAN {v.id} ({v.name})
                             </option>
@@ -1296,7 +1282,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
               placeholder="192.168.1.1"
             />
           </div>
-          
           {/* Выпадающий список VLAN для ПК */}
           <div style={styles.formGroup}>
             <label style={styles.label}>Подключить к VLAN</label>
@@ -1326,7 +1311,7 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                     });
                   }
                 });
-                return allVlans.length > 0 
+                return allVlans.length > 0
                   ? allVlans.map(v => <option key={v.id} value={v.id}>VLAN {v.id} ({v.name})</option>)
                   : <option value="1">VLAN 1 (default)</option>;
               })()}
@@ -1382,7 +1367,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
     // СПЕЦИАЛЬНЫЕ НАСТРОЙКИ ДЛЯ FIREWALL
     if (node.data.type === 'firewall') {
       const firewallActive = node.data.isActive !== false;
-      
       return (
         <>
           <div style={{
@@ -1392,20 +1376,20 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
             border: '1px solid #334155',
             marginBottom: '15px'
           }}>
-            <h3 style={{ 
-              color: '#f59e0b', 
-              fontSize: '14px', 
+            <h3 style={{
+              color: '#f59e0b',
+              fontSize: '14px',
               marginBottom: '16px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              🛡️ Статус защиты Firewall
+              ️ Статус защиты Firewall
             </h3>
-            
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px',
               background: firewallActive ? '#064e3b' : '#450a0a',
@@ -1413,24 +1397,24 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
               border: `1px solid ${firewallActive ? '#10b981' : '#ef4444'}`
             }}>
               <div>
-                <div style={{ 
-                  color: '#fff', 
+                <div style={{
+                  color: '#fff',
                   fontWeight: 'bold',
                   fontSize: '13px',
                   marginBottom: '4px'
                 }}>
-                  {firewallActive ? '🟢 Активен' : '🔴 Отключен'}
+                  {firewallActive ? '🟢 Активен' : ' Отключен'}
                 </div>
-                <div style={{ 
-                  color: '#94a3b8', 
+                <div style={{
+                  color: '#94a3b8',
                   fontSize: '11px'
                 }}>
-                  {firewallActive 
-                    ? 'Firewall блокирует атаки и вредоносный трафик' 
+                  {firewallActive
+                    ? 'Firewall блокирует атаки и вредоносный трафик'
                     : 'Сеть не защищена - уязвима для атак'}
                 </div>
               </div>
-              
+
               {/* Toggle Switch */}
               <button
                 onClick={() => {
@@ -1449,7 +1433,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                       return n;
                     })
                   );
-                  
                   // Обновляем selectedNode для синхронизации UI
                   setSelectedNode(prev => prev && prev.id === node.id ? {
                     ...prev,
@@ -1458,7 +1441,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                       isActive: newStatus
                     }
                   } : prev);
-                  
                   // Логирование
                   onAddLog(`🛡️ Firewall ${node.data.label}: ${newStatus ? 'АКТИВИРОВАН' : 'ОТКЛЮЧЕН'}`);
                 }}
@@ -1472,8 +1454,8 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                   fontWeight: 'bold',
                   fontSize: '13px',
                   transition: 'all 0.3s',
-                  boxShadow: firewallActive 
-                    ? '0 0 15px rgba(16, 185, 129, 0.5)' 
+                  boxShadow: firewallActive
+                    ? '0 0 15px rgba(16, 185, 129, 0.5)'
                     : '0 0 15px rgba(239, 68, 68, 0.5)'
                 }}
                 onMouseOver={(e) => {
@@ -1486,18 +1468,17 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
                 {firewallActive ? 'ОТКЛЮЧИТЬ' : 'АКТИВИРОВАТЬ'}
               </button>
             </div>
-            
+
             {/* Информация о блокировках */}
-            <div style={{ 
-              marginTop: '16px', 
-              fontSize: '11px', 
+            <div style={{
+              marginTop: '16px',
+              fontSize: '11px',
               color: '#64748b',
               textAlign: 'center'
             }}>
               💡 Совет: Отключите Firewall и запустите DDoS-атаку, чтобы увидеть уязвимость сети
             </div>
           </div>
-          
           <div style={{ fontSize: '12px', color: '#718096' }}>
             ℹ️ Firewall не имеет IP-адреса и работает как фильтр сетевого трафика
           </div>
@@ -1512,7 +1493,6 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
     if (!['pc', 'laptop', 'server'].includes(node.data.type)) {
       return <div style={{ color: '#a0aec0' }}>Терминал доступен только для ПК, ноутбуков и серверов</div>;
     }
-
     return (
       <>
         <div style={styles.terminalWindow}>
@@ -1545,10 +1525,10 @@ const DeviceModal = ({ node, onClose, onUpdate, onAddLog, nodes, edges, checkCon
       <div style={styles.modalContentNew} onClick={(e) => e.stopPropagation()}>
         {/* Заголовок с кнопкой закрытия */}
         <div style={styles.modalHeader}>
-          <div style={styles.modalTitle}>⚙️ {node.data.label}</div>
+          <div style={styles.modalTitle}>️ {node.data.label}</div>
           <button style={styles.closeButtonX} onClick={onClose}>✕</button>
         </div>
-        
+
         <div style={styles.tabContainer}>
           <button
             style={{ ...styles.tab, ...(activeTab === 'settings' ? styles.tabActive : {}) }}
@@ -1594,27 +1574,23 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
   const [wanIp, setWanIp] = useState(node.data.wanIp || '');
   const [vlanIdInput, setVlanIdInput] = useState('');
   const [vlanNameInput, setVlanNameInput] = useState('');
-  
+
   // СБОР ВСЕХ ДОСТУПНЫХ VLAN С КОММУТАТОРОВ НА ХОЛСТЕ
   const availableVlans = React.useMemo(() => {
     if (!nodes || nodes.length === 0) {
       return [{ id: 1, name: 'default' }];
     }
-    
     // Находим все коммутаторы на холсте
-    const switches = nodes.filter(n => 
-      n.data?.type?.toLowerCase().includes('switch') || 
+    const switches = nodes.filter(n =>
+      n.data?.type?.toLowerCase().includes('switch') ||
       n.data?.label?.toLowerCase().includes('коммутатор')
     );
-    
     if (switches.length === 0) {
       return [{ id: 1, name: 'default' }];
     }
-    
     // Собираем все VLAN из всех коммутаторов
     const allVlans = [];
     const vlanIds = new Set();
-    
     switches.forEach(switchNode => {
       const switchVlans = switchNode.data.vlans || [{ id: 1, name: 'default' }];
       switchVlans.forEach(vlan => {
@@ -1624,26 +1600,24 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
         }
       });
     });
-    
     // Если ничего не собрали, возвращаем дефолтный VLAN
     if (allVlans.length === 0) {
       return [{ id: 1, name: 'default' }];
     }
-    
     // Сортируем по ID
     return allVlans.sort((a, b) => a.id - b.id);
   }, [nodes]);
-  
+
   // Состояние для выбранного VLAN у ПК
   const [selectedVlanId, setSelectedVlanId] = useState(node.data.vlanId || 1);
-  
+
   // Надежная проверка типа устройства
   const nodeLabel = node?.data?.label?.toLowerCase() || '';
   const nodeType = node?.data?.type?.toLowerCase() || '';
   const isL2Switch = nodeType.includes('switch') || nodeLabel.includes('коммутатор') || nodeLabel.includes('switch');
   const isRouter = nodeType === 'router' || nodeLabel.includes('маршрутизатор') || nodeLabel.includes('router');
   const isFirewall = nodeType === 'firewall' || nodeLabel.includes('firewall');
-  
+
   // Функция добавления VLAN
   const handleAddVlan = () => {
     const parsedId = parseInt(vlanIdInput);
@@ -1651,19 +1625,15 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
       alert("VLAN ID должен быть числом от 1 до 4094");
       return;
     }
-
     // Обновляем главный стейт узлов React Flow с нестрогим сравнением типов
     setNodes((nds) =>
       nds.map((n) => {
         if (String(n.id) === String(node.id)) {
           const currentVlans = n.data?.vlans || [{ id: 1, name: 'default' }];
           if (currentVlans.some((v) => String(v.id) === String(parsedId))) return n;
-          
           const updatedVlans = [...currentVlans, { id: parsedId, name: vlanNameInput.trim() || `VLAN_${parsedId}` }];
-          
           // Синхронизируем локальный стейт открытого окна, чтобы таблица сразу перерисовывалась
           setSelectedNode(prev => prev && String(prev.id) === String(node.id) ? { ...prev, data: { ...prev.data, vlans: updatedVlans } } : prev);
-          
           return {
             ...n,
             data: { ...n.data, vlans: updatedVlans }
@@ -1672,28 +1642,24 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
         return n;
       })
     );
-    
     onAddLog(`📝 ${node.data.label}: добавлен VLAN ${parsedId}`);
     setVlanIdInput('');
     setVlanNameInput('');
   };
-  
+
   // Функция удаления VLAN
   const handleRemoveVlan = (vlanId) => {
     if (vlanId === 1 || String(vlanId) === '1') {
       onAddLog('❌ Ошибка: Нельзя удалить системный VLAN 1 (default)');
       return;
     }
-    
     setNodes((nds) =>
       nds.map((n) => {
         if (String(n.id) === String(node.id)) {
           const currentVlans = n.data?.vlans || [{ id: 1, name: 'default' }];
           const updatedVlans = currentVlans.filter(v => String(v.id) !== String(vlanId));
-          
           // Синхронизируем локальный стейт открытого окна
           setSelectedNode(prev => prev && String(prev.id) === String(node.id) ? { ...prev, data: { ...prev.data, vlans: updatedVlans } } : prev);
-          
           return {
             ...n,
             data: { ...n.data, vlans: updatedVlans }
@@ -1702,40 +1668,39 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
         return n;
       })
     );
-    
     onAddLog(`📝 ${node.data.label}: удален VLAN ${vlanId}`);
   };
 
   const handleSave = () => {
     if (isL2Switch) {
       // Для L2 коммутатора сохраняем только VLAN
-      onUpdate(node.id, { 
-        ...node.data, 
+      onUpdate(node.id, {
+        ...node.data,
         vlans: node.data.vlans || [{ id: 1, name: 'default' }]
       });
       onAddLog(`📝 ${node.data.label}: настройки VLAN сохранены`);
     } else if (isRouter) {
       // Для маршрутизатора сохраняем lanIp и wanIp
-      onUpdate(node.id, { 
-        ...node.data, 
+      onUpdate(node.id, {
+        ...node.data,
         lanIp: lanIp,
         wanIp: wanIp,
         ip: lanIp || node.data.ip
       });
-      onAddLog(`📝 ${node.data.label}: настройки сохранены (LAN: ${lanIp}, WAN: ${wanIp})`);
+      onAddLog(` ${node.data.label}: настройки сохранены (LAN: ${lanIp}, WAN: ${wanIp})`);
     } else {
       // Для ПК, ноутбуков и серверов - сохраняем IP настройки и выбранный VLAN
-      onUpdate(node.id, { 
-        ...node.data, 
+      onUpdate(node.id, {
+        ...node.data,
         config: { ip, subnet, gateway },
         ip: ip || node.data.ip,
         vlanId: selectedVlanId
       });
-      onAddLog(`📝 ${node.data.label}: настройки сохранены (IP: ${ip}, VLAN: ${selectedVlanId})`);
+      onAddLog(` ${node.data.label}: настройки сохранены (IP: ${ip}, VLAN: ${selectedVlanId})`);
     }
     onClose();
   };
-  
+
   // Проверка типа устройства для отображения настроек
   if (!isL2Switch && !isRouter && !['pc', 'laptop', 'server'].includes(nodeType) && !isFirewall) {
     return (
@@ -1749,7 +1714,6 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
   // 🔥 НАСТРОЙКИ FIREWALL - Переключатель Active/Disabled
   if (isFirewall) {
     const isActive = node.data.isActive !== false; // По умолчанию true если не задано
-    
     return (
       <div style={{
         padding: '24px',
@@ -1758,57 +1722,53 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
         border: '2px solid #f59e0b',
         marginTop: '20px'
       }}>
-        <h3 style={{ 
-          color: '#fbbf24', 
-          fontSize: '16px', 
+        <h3 style={{
+          color: '#fbbf24',
+          fontSize: '16px',
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
           margin: '0 0 20px 0'
         }}>
-          🛡️ Статус защиты Firewall
+          ️ Статус защиты Firewall
         </h3>
-        
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
           padding: '20px',
           background: isActive ? '#064e3b' : '#450a0a',
           borderRadius: '12px',
           border: `2px solid ${isActive ? '#10b981' : '#ef4444'}`,
-          boxShadow: isActive 
-            ? '0 0 20px rgba(16, 185, 129, 0.3)' 
+          boxShadow: isActive
+            ? '0 0 20px rgba(16, 185, 129, 0.3)'
             : '0 0 20px rgba(239, 68, 68, 0.3)'
         }}>
           <div style={{ flex: 1 }}>
-            <div style={{ 
-              color: '#fff', 
+            <div style={{
+              color: '#fff',
               fontWeight: 'bold',
               fontSize: '16px',
               marginBottom: '8px'
             }}>
               {isActive ? '🟢 АКТИВЕН' : '🔴 ОТКЛЮЧЕН'}
             </div>
-            <div style={{ 
-              color: '#94a3b8', 
+            <div style={{
+              color: '#94a3b8',
               fontSize: '12px',
               lineHeight: '1.5'
             }}>
-              {isActive 
-                ? 'Firewall блокирует все атаки и вредоносный трафик. Сеть защищена.' 
-                : '⚠️ Сеть НЕ ЗАЩИЩЕНА! Уязвима для DDoS-атак и сканирования портов.'}
+              {isActive
+                ? 'Firewall блокирует все атаки и вредоносный трафик. Сеть защищена.'
+                : '️ Сеть НЕ ЗАЩИЩЕНА! Уязвима для DDoS-атак и сканирования портов.'}
             </div>
           </div>
-          
           {/* Toggle Switch Button */}
           <button
             onClick={() => {
               const newStatus = !isActive;
-              
               console.log('🔧 Firewall статус:', newStatus);
-              
               // Обновляем состояние Firewall
               setNodes((nds) =>
                 nds.map((n) => {
@@ -1821,8 +1781,8 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
                       },
                       style: {
                         ...n.style,
-                        boxShadow: newStatus 
-                          ? '0 0 20px rgba(245, 158, 11, 0.6)' 
+                        boxShadow: newStatus
+                          ? '0 0 20px rgba(245, 158, 11, 0.6)'
                           : 'none'
                       }
                     };
@@ -1830,15 +1790,12 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
                   return n;
                 })
               );
-              
               // Синхронизируем selectedNode для мгновенного обновления UI
               setSelectedNode(prev => prev && prev.id === node.id ? { ...prev, data: { ...prev.data, isActive: newStatus } } : prev);
-              
               // Запись в журнал
               const statusText = newStatus ? 'АКТИВИРОВАН' : 'ОТКЛЮЧЕН';
               const emoji = newStatus ? '🛡️' : '⚠️';
               onAddLog(`${emoji} Firewall "${node.data.label}": ${statusText}`);
-              
               alert(`Firewall ${newStatus ? 'активирован' : 'отключен'}!`);
             }}
             style={{
@@ -1867,11 +1824,10 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
             {isActive ? '🔴 ОТКЛЮЧИТЬ' : '🟢 АКТИВИРОВАТЬ'}
           </button>
         </div>
-        
         {/* Подсказка */}
-        <div style={{ 
-          marginTop: '16px', 
-          fontSize: '12px', 
+        <div style={{
+          marginTop: '16px',
+          fontSize: '12px',
           color: '#64748b',
           textAlign: 'center',
           fontStyle: 'italic'
@@ -1885,30 +1841,28 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
   // Настройки для L2 коммутатора (VLAN)
   if (isL2Switch) {
     const vlans = node.data.vlans || [{ id: 1, name: 'default' }];
-    
     return (
       <div className="vlan-settings-section">
         <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '15px', color: '#a0aec0' }}>Настройка VLAN (Layer 2)</h4>
-        
         {/* Форма создания нового VLAN */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <input 
-            type="number" 
-            placeholder="ID (1-4094)" 
+          <input
+            type="number"
+            placeholder="ID (1-4094)"
             value={vlanIdInput}
             onChange={(e) => setVlanIdInput(e.target.value)}
-            min="1" 
+            min="1"
             max="4094"
             style={{ width: '100px', padding: '10px', background: '#1f2433', border: '1px solid #3b4252', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }}
           />
-          <input 
-            type="text" 
-            placeholder="Имя VLAN" 
+          <input
+            type="text"
+            placeholder="Имя VLAN"
             value={vlanNameInput}
             onChange={(e) => setVlanNameInput(e.target.value)}
             style={{ flex: 1, padding: '10px', background: '#1f2433', border: '1px solid #3b4252', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }}
           />
-          <button 
+          <button
             type="button"
             onClick={handleAddVlan}
             style={{ padding: '10px 20px', background: '#3b82f6', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
@@ -1916,7 +1870,6 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
             Добавить
           </button>
         </div>
-
         {/* Таблица со списком VLAN - рендерим строго из selectedNode.data.vlans */}
         <div style={{ background: '#1a1d24', borderRadius: '6px', border: '1px solid #3b4252', overflow: 'hidden' }}>
           <table style={{ width: '100%', textAlign: 'left', fontSize: '13px', color: '#a0aec0' }}>
@@ -1936,8 +1889,8 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
                     {String(vlan.id) === '1' ? (
                       <span style={{ color: '#718096', fontStyle: 'italic' }}>Системный</span>
                     ) : (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => handleRemoveVlan(vlan.id)}
                         style={{ background: 'transparent', border: 'none', color: '#fc8181', cursor: 'pointer', fontSize: '13px', padding: '5px 10px' }}
                       >
@@ -1950,7 +1903,6 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
             </tbody>
           </table>
         </div>
-        
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
           <button onClick={onClose} style={{ padding: '10px 20px', background: '#4a5568', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Отмена</button>
           <button onClick={handleSave} style={{ padding: '10px 20px', background: '#4299e1', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Сохранить изменения</button>
@@ -2024,11 +1976,10 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
           style={{ width: '100%', padding: '10px', background: '#2d3748', border: '1px solid #4a5568', borderRadius: '6px', color: '#fff', fontSize: '14px', boxSizing: 'border-box' }}
         />
       </div>
-      
       {/* ПОЛЕ ВЫБОРА VLAN ДЛЯ ПК */}
       <div style={{ marginBottom: '20px' }}>
         <label style={{ display: 'block', fontSize: '13px', color: '#a0aec0', marginBottom: '5px' }}>Подключен к VLAN</label>
-        <select 
+        <select
           value={selectedVlanId}
           onChange={(e) => setSelectedVlanId(parseInt(e.target.value))}
           style={{ width: '100%', padding: '10px', background: '#2d3748', border: '1px solid #4a5568', borderRadius: '6px', color: '#fff', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }}
@@ -2040,10 +1991,9 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
           ))}
         </select>
       </div>
-      
       {/* КНОПКА ВОССТАНОВЛЕНИЯ СЕРВЕРА - показываем только если сервер заражен */}
       {(node.data.type === 'server' || String(node.data.label).toLowerCase().includes('сервер')) && compromisedServers.has(node.id) && (
-        <button 
+        <button
           onClick={() => recoverServer(node.id)}
           style={{
             marginTop: '12px',
@@ -2065,7 +2015,6 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
           🔧 Восстановить сервер
         </button>
       )}
-      
       <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={{ padding: '10px 20px', background: '#4a5568', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Отмена</button>
         <button onClick={handleSave} style={{ padding: '10px 20px', background: '#4299e1', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Сохранить изменения</button>
@@ -2073,6 +2022,7 @@ const SettingsTabContent = ({ node, onUpdate, onClose, onAddLog, nodes, setNodes
     </div>
   );
 };
+
 const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, animatePing, addLog, checkSameVlan }) => {
   const [terminalLines, setTerminalLines] = useState([
     'Microsoft Windows [Version 10.0.19045]',
@@ -2083,7 +2033,7 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
   ]);
   const [terminalInput, setTerminalInput] = useState('');
   const terminalEndRef = useRef(null);
-  
+
   // Автопрокрутка терминала вниз
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -2094,8 +2044,7 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
     const ip = node.data.config?.ip || node.data.ip || '0.0.0.0';
     const subnet = node.data.config?.subnet || node.data.subnet || '255.255.255.0';
     const gateway = node.data.config?.gateway || node.data.gateway || '0.0.0.0';
-    
-    setTerminalLines((prev) => [...prev, 
+    setTerminalLines((prev) => [...prev,
       'C:\\Users\\Admin> ipconfig',
       'Настройка протокола IP для Windows:',
       `  IPv4-адрес. . . . . . . . . . . : ${ip}`,
@@ -2109,12 +2058,10 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
   const runPingGoogle = () => {
     const targetIp = '8.8.8.8';
     const currentGateway = node.data.config?.gateway || node.data.gateway || '';
-    
-    setTerminalLines((prev) => [...prev, 
+    setTerminalLines((prev) => [...prev,
       `C:\\Users\\Admin> ping ${targetIp}`,
       `Обмен пакетами с ${targetIp} по 32 байт данных:`
     ]);
-
     if (!currentGateway || currentGateway === '0.0.0.0') {
       // Шлюз не указан - ошибка
       setTimeout(() => {
@@ -2130,11 +2077,10 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
       }, 100);
     } else {
       // Проверяем, совпадает ли шлюз с LAN IP маршрутизатора
-      const routerNode = nodes.find(n => 
-        (n.data.type === 'router' || n.data.type === 'Маршрутизатор') && 
+      const routerNode = nodes.find(n =>
+        (n.data.type === 'router' || n.data.type === 'Маршрутизатор') &&
         (n.data.config?.lanIp === currentGateway || n.data.lanIp === currentGateway)
       );
-
       if (!routerNode) {
         // Шлюз указан, но маршрутизатор не найден
         setTimeout(() => {
@@ -2152,9 +2098,7 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
         // Успешный выход через NAT
         const sourceIp = node.data.config?.ip || node.data.ip;
         const wanIp = routerNode.data.config?.wanIp || routerNode.data.wanIp || routerNode.data.config?.ip || routerNode.data.ip || '95.24.10.1';
-        
         addLog(`🔄 [NAT] Маршрутизатор успешно подменил локальный IP ${sourceIp || 'локальный'} на внешний WAN для ПК 1`);
-        
         setTimeout(() => {
           setTerminalLines((prev) => [...prev,
             `  Ответ от ${targetIp}: число байт=32 время=14мс TTL=54`,
@@ -2203,7 +2147,7 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
     } else if (cmdLower.startsWith?.('ping ')) {
       const targetIp = currentCmd.substring(5).trim();
       linesToAdd.push(`Обмен пакетами с ${targetIp} по 32 байт данных:`);
-
+      
       if (targetIp === '8.8.8.8') {
         // Логика проверки шлюза для NAT
         const currentGateway = node.data.config?.gateway || node.data.gateway || '';
@@ -2219,8 +2163,8 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
         } else {
           // Успешный выход через NAT
           const sourceIp = node.data.config?.ip || node.data.ip;
-          const routerNode = nodes.find(n => 
-            (n.data.type === 'router' || n.data.type === 'Маршрутизатор') && 
+          const routerNode = nodes.find(n =>
+            (n.data.type === 'router' || n.data.type === 'Маршрутизатор') &&
             (n.data.config?.lanIp === currentGateway || n.data.lanIp === currentGateway)
           );
           const wanIp = routerNode?.data.config?.wanIp || routerNode?.data.wanIp || routerNode?.data.config?.ip || routerNode?.data.ip || '95.24.10.1';
@@ -2254,7 +2198,6 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
         } else {
           // Проверяем наличие пути и VLAN
           const hasPath = checkConnectionBetweenNodes(node.id, targetNode.id, edges);
-          
           if (!hasPath) {
             // Нет физического соединения
             linesToAdd.push(
@@ -2269,24 +2212,21 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
             // Есть физическое соединение - проверяем VLAN
             const sourceVlan = node.data.vlanId || 1;
             const targetVlan = targetNode.data.vlanId || 1;
-            
             // Используем новую функцию проверки VLAN
             const sameVlan = checkSameVlan(node, targetNode, nodes);
-            
             // Находим коммутатор, через который идет соединение
             const sourceEdges = edges.filter(e => e.source === node.id || e.target === node.id);
             const targetEdges = edges.filter(e => e.source === targetNode.id || e.target === targetNode.id);
-            
             let commonSwitch = null;
             for (const se of sourceEdges) {
               const nextId = se.source === node.id ? se.target : se.source;
               const nextNode = nodes.find(n => n.id === nextId);
               // Проверка на L2 коммутатор через includes для надежности
-              const isSwitch = nextNode?.data?.type?.toLowerCase().includes('switch') || 
+              const isSwitch = nextNode?.data?.type?.toLowerCase().includes('switch') ||
                                nextNode?.data?.label?.toLowerCase().includes('коммутатор');
               if (nextNode && isSwitch) {
                 // Проверяем, подключен ли targetNode к этому же коммутатору
-                const isTargetConnected = targetEdges.some(e => 
+                const isTargetConnected = targetEdges.some(e =>
                   (e.source === targetNode.id && e.target === nextId) ||
                   (e.target === targetNode.id && e.source === nextId)
                 );
@@ -2316,7 +2256,6 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
                     setTerminalLines(prev => [...prev, `Ответ от ${targetIp}: число байт=32 время=${time}мс TTL=64`]);
                   }, i * 500);
                 }
-                
                 setTimeout(() => {
                   setTerminalLines(prev => [...prev, '',
                     `Статистика Ping для ${targetIp}:`,
@@ -2325,7 +2264,6 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
                   ]);
                 }, 2000);
               }, 100);
-              
               addLog(`✅ [Ping] Успешный ответ от ${targetIp} (VLAN ${targetVlan})`);
             }
           }
@@ -2349,17 +2287,16 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
         ))}
         <div ref={terminalEndRef} />
       </div>
-      
       {/* Строка ввода */}
       <form onSubmit={handleTerminalSubmit} style={{ display: 'flex', alignItems: 'center' }}>
         <span style={{ color: '#8892b0', marginRight: '5px', whiteSpace: 'nowrap' }}>C:\Users\Admin&gt;</span>
-        <input 
-          type="text" 
-          value={terminalInput} 
-          onChange={(e) => setTerminalInput(e.target.value)} 
+        <input
+          type="text"
+          value={terminalInput}
+          onChange={(e) => setTerminalInput(e.target.value)}
           onKeyDown={(e) => e.stopPropagation()}
-          style={{ flexGrow: 1, background: 'none', border: 'none', color: '#fff', outline: 'none', fontFamily: 'monospace', fontSize: '13px' }} 
-          autoFocus 
+          style={{ flexGrow: 1, background: 'none', border: 'none', color: '#fff', outline: 'none', fontFamily: 'monospace', fontSize: '13px' }}
+          autoFocus
         />
       </form>
     </div>
@@ -2367,13 +2304,12 @@ const TerminalTabContent = ({ node, nodes, edges, checkConnectionBetweenNodes, a
 };
 
 // ==================== ОСНОВНОЙ КОМПОНЕНТ ====================
-
 const NetworkSimulator = () => {
   const { getNodes } = useReactFlow();
-  
+
   // Состояние для зараженных серверов
   const [compromisedServers, setCompromisedServers] = useState(new Set());
-  
+
   // Функция восстановления сервера
   const recoverServer = (serverId) => {
     setCompromisedServers(prev => {
@@ -2387,7 +2323,7 @@ const NetworkSimulator = () => {
       message: `🔧 Сервер ${server?.data?.label || serverId} восстановлен. Защита активирована.`
     }]);
   };
-  
+
   // Типы узлов с зависимостью от compromisedServers
   const nodeTypes = useMemo(() => ({
     custom: (props) => <CustomNode {...props} isCompromised={compromisedServers.has(props.id)} />,
@@ -2405,22 +2341,23 @@ const NetworkSimulator = () => {
       />
     ),
   }), [compromisedServers]);
-  
+
   // 1. Инициализация с проверкой LocalStorage
   const [nodes, setNodes, onNodesChange] = useNodesState(() => {
     const saved = localStorage.getItem('rf_nodes');
     return saved ? JSON.parse(saved) : [];
   });
-  
+
   const [edges, setEdges, onEdgesChange] = useEdgesState(() => {
     const saved = localStorage.getItem('rf_edges');
     return saved ? JSON.parse(saved) : [];
   });
-  
+
   const [logs, setLogs] = useState(() => {
     const saved = localStorage.getItem('rf_logs');
     return saved ? JSON.parse(saved) : [];
   });
+
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -2428,27 +2365,33 @@ const NetworkSimulator = () => {
   const [packets, setPackets] = useState([]);
   const [explosions, setExplosions] = useState([]); // Анимации взрывов при блокировке firewall
   const [showHelpModal, setShowHelpModal] = useState(false);
+
   // Состояния для нового окна "Настройки и Терминал"
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('settings');
+
   // Скрытый input для загрузки файла
   const fileInputRef = useRef(null);
+
   // Состояния для перетаскивания модального окна
   const [modalPosition, setModalPosition] = useState({ x: window.innerWidth / 2 - 300, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const modalRef = useRef(null);
+
   // Состояния для аккордеонов сайдбара
   const [isEndDevicesOpen, setIsEndDevicesOpen] = useState(true);
   const [isNetworkDevicesOpen, setIsNetworkDevicesOpen] = useState(false);
   const [isSecurityDevicesOpen, setIsSecurityDevicesOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(true);
+
   // Состояние для отслеживания позиции скролла журнала
   const [isUserAtBottom, setIsUserAtBottom] = useState(true);
+
   const reactFlowWrapper = useRef(null);
   const logContainerRef = useRef(null);
   const nextIpRef = useRef(10); // Счетчик для DHCP (начинаем с 192.168.1.10)
-  
+
   // Обработчик ручного скролла журнала - запоминаем позицию
   const handleLogScroll = (e) => {
     const container = e.target;
@@ -2457,7 +2400,7 @@ const NetworkSimulator = () => {
     // Если мы в 50px от низа - считаем что "внизу"
     setIsUserAtBottom(distanceToBottom < 50);
   };
-  
+
   // Умный автоскролл журнала: скроллим вниз только если пользователь уже внизу
   useEffect(() => {
     if (logContainerRef.current && isUserAtBottom) {
@@ -2466,7 +2409,7 @@ const NetworkSimulator = () => {
     }
     // Если пользователь отскроллил вверх - НЕ трогаем скролл, даем читать историю
   }, [logs, isUserAtBottom]);
-  
+
   // 2. Автосохранение при изменении
   useEffect(() => {
     localStorage.setItem('rf_nodes', JSON.stringify(nodes));
@@ -2479,7 +2422,7 @@ const NetworkSimulator = () => {
   useEffect(() => {
     localStorage.setItem('rf_logs', JSON.stringify(logs));
   }, [logs]);
-  
+
   // Обработчики для перетаскивания модального окна
   const handleModalMouseDown = useCallback((e) => {
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea')) {
@@ -2491,7 +2434,7 @@ const NetworkSimulator = () => {
       y: e.clientY - modalPosition.y
     });
   }, [modalPosition]);
-  
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDragging) {
@@ -2501,37 +2444,33 @@ const NetworkSimulator = () => {
         });
       }
     };
-    
     const handleMouseUp = () => {
       setIsDragging(false);
     };
-    
+
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
-    
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, dragOffset]);
-  
+
   // Функция для анимации пинга по шагам с поддержкой NAT и VLAN
   const animatePing = useCallback((sourceNodeId, targetNodeId, hasPath, needsNat, gatewayNode, addLogCallback) => {
     const sourceNode = nodes.find(n => n.id === sourceNodeId);
     const targetNode = nodes.find(n => n.id === targetNodeId);
-    
     if (!sourceNode) return;
 
     // Проверяем VLAN изоляцию
     const sameVlan = checkSameVlan(sourceNode, targetNode, nodes);
-    
+
     // Находим коммутатор/роутер, к которому подключен источник
     const connectedEdges = edges.filter(e => e.source === sourceNodeId || e.target === sourceNodeId);
     let firstHopNode = null;
     let firstEdge = null;
-    
     for (const edge of connectedEdges) {
       const nextId = edge.source === sourceNodeId ? edge.target : edge.source;
       const nextNode = nodes.find(n => n.id === nextId);
@@ -2553,13 +2492,12 @@ const NetworkSimulator = () => {
     // Проверяем, есть ли общий коммутатор и разные VLAN
     const sourceEdges = edges.filter(e => e.source === sourceNodeId || e.target === sourceNodeId);
     const targetEdges = edges.filter(e => e.source === targetNodeId || e.target === targetNodeId);
-    
     let commonSwitch = null;
     for (const se of sourceEdges) {
       const nextId = se.source === sourceNodeId ? se.target : se.source;
       const nextNode = nodes.find(n => n.id === nextId);
       if (nextNode && nextNode.data.type === 'switch') {
-        const isTargetConnected = targetEdges.some(e => 
+        const isTargetConnected = targetEdges.some(e =>
           (e.source === targetNodeId && e.target === nextId) ||
           (e.target === targetNodeId && e.source === nextId)
         );
@@ -2615,11 +2553,10 @@ const NetworkSimulator = () => {
         // Пауза на обработку NAT (0.5 сек)
         setTimeout(() => {
           // Находим WAN-интерфейс роутера (ребро, идущее наружу)
-          const wanEdges = edges.filter(e => 
-            (e.source === gatewayNode.id || e.target === gatewayNode.id) && 
+          const wanEdges = edges.filter(e =>
+            (e.source === gatewayNode.id || e.target === gatewayNode.id) &&
             e.data?.type !== 'lan'
           );
-          
           let wanEdge = null;
           if (wanEdges.length > 0) {
             wanEdge = wanEdges[0];
@@ -2723,7 +2660,6 @@ const NetworkSimulator = () => {
             // Нет WAN подключения у роутера
             addLogCallback('⚠️ Ошибка: У маршрутизатора нет активного подключения к внешней сети (WAN).');
             addLogCallback('Request timed out.');
-            
             // Сброс
             setTimeout(() => {
               setEdges((eds) => eds.map(edge => {
@@ -2741,7 +2677,6 @@ const NetworkSimulator = () => {
           }
         }, 500);
       }, 1500);
-      
       return;
     }
 
@@ -2760,7 +2695,6 @@ const NetworkSimulator = () => {
           }
           return edge;
         }));
-        
         setTimeout(() => {
           // Сброс анимации
           setEdges((eds) => eds.map(edge => {
@@ -2837,7 +2771,6 @@ const NetworkSimulator = () => {
             return edge;
           }));
         }
-
         // Включаем обратную анимацию (зеленую)
         if (secondEdge) {
           setEdges((eds) => eds.map(edge => {
@@ -2868,7 +2801,6 @@ const NetworkSimulator = () => {
               return edge;
             }));
           }
-
           // Включаем первую обратную анимацию (зеленую)
           setEdges((eds) => eds.map(edge => {
             if (edge.id === firstEdge.id) {
@@ -2910,11 +2842,9 @@ const NetworkSimulator = () => {
   const handlePlanUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64Image = event.target.result;
-      
       // Создаем ноду фона ПЕРВОЙ в массиве
       const planNode = {
         id: 'office-plan-bg',
@@ -2925,14 +2855,12 @@ const NetworkSimulator = () => {
         zIndex: -10,
         data: { image: base64Image }
       };
-      
       setNodes((nds) => [planNode, ...nds.filter(n => n.id !== 'office-plan-bg')]);
       addLog('🗺️ [План] Схема помещений успешно загружена на холст');
       // Сбрасываем выбор узла, чтобы не мешать добавлению новых устройств
       setSelectedNodeId(null);
     };
     reader.readAsDataURL(file);
-    
     // Сбрасываем value input, чтобы можно было загрузить тот же файл повторно
     e.target.value = '';
   };
@@ -2961,7 +2889,6 @@ const NetworkSimulator = () => {
   const handleImportScheme = useCallback((e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -2970,7 +2897,7 @@ const NetworkSimulator = () => {
           setNodes(data.nodes);
           setEdges(data.edges);
           if (data.logs) setLogs(data.logs);
-          addLog('📂 Схема успешно загружена из файла');
+          addLog(' Схема успешно загружена из файла');
         } else {
           addLog('❌ Ошибка: Неверный формат файла');
         }
@@ -2995,24 +2922,18 @@ const NetworkSimulator = () => {
   const deleteNode = useCallback((nodeId) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete) return;
-
     const nodeName = nodeToDelete.data.label;
-
     // Удаляем все соединения (edges), связанные с этим устройством
     setEdges((eds) => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
-    
     // Удаляем саму ноду
     setNodes((nds) => nds.filter(node => node.id !== nodeId));
-    
     // Закрываем модальное окно если оно было открыто для этой ноды
     if (selectedNode && selectedNode.id === nodeId) {
       setShowModal(false);
       setSelectedNode(null);
     }
-    
     // Сбрасываем выбранный ID
     setSelectedNodeId(null);
-
     addLog(`🗑️ Устройство [${nodeName}] и его соединения удалены`);
   }, [nodes, selectedNode, setEdges, setNodes, addLog]);
 
@@ -3021,17 +2942,14 @@ const NetworkSimulator = () => {
     // Находим ноду, у которой горит синяя рамка выделения (selected: true)
     const allNodes = getNodes();
     const selectedNodeData = allNodes.find(node => node.selected);
-    
     if (!selectedNodeData) {
       // Если ничего не выбрано, пишем предупреждение в наш журнал по центру
       addLog("⚠️ Ошибка: Сначала выберите устройство на холсте кликом мыши!");
       return;
     }
-
     // Удаляем устройство и все провода, которые в него входили или выходили
     setNodes((nds) => nds.filter((n) => n.id !== selectedNodeData.id));
     setEdges((eds) => eds.filter((edge) => edge.source !== selectedNodeData.id && edge.target !== selectedNodeData.id));
-    
     const deviceName = selectedNodeData?.data?.label || selectedNodeData?.data?.ip || "Неизвестное устройство";
     addLog(`🗑️ Устройство [${deviceName}] и его соединения удалены`);
   }, [getNodes, setNodes, setEdges, addLog]);
@@ -3040,18 +2958,14 @@ const NetworkSimulator = () => {
   const handleOpenSettings = useCallback(() => {
     const allNodes = getNodes();
     const selectedNodeData = allNodes.find(node => node.selected);
-    
     if (!selectedNodeData) {
       addLog("⚠️ Сначала выберите устройство на холсте кликом мыши!");
       return;
     }
-
     setSelectedNode(selectedNodeData);
     setActiveTab('settings');
     setIsSettingsOpen(true);
   }, [getNodes, addLog]);
-
-
 
   const onConnect = useCallback(
     (params) => {
@@ -3090,7 +3004,6 @@ const NetworkSimulator = () => {
   const addGroup = useCallback(() => {
     const groupName = prompt('Введите название группы (например: Бухгалтерия):', 'Новая группа');
     if (!groupName) return;
-
     const newGroup = {
       id: `group-${Date.now()}`,
       type: 'group',
@@ -3111,13 +3024,11 @@ const NetworkSimulator = () => {
             ...newData,
             ip: newData.config?.ip || newData.ip || newData.config?.lanIp || newData.lanIp,
           };
-          
           // Если это роутер, добавляем lanIp и wanIp в корень data для отображения на холсте
           if (newData.type === 'router' || node.data.type === 'router') {
             updatedData.lanIp = newData.config?.lanIp || newData.lanIp;
             updatedData.wanIp = newData.config?.wanIp || newData.wanIp;
           }
-          
           // ✅ Сохраняем VLAN в корне data для отображения на узле
           if (newData.vlan !== undefined) {
             updatedData.vlan = newData.vlan;
@@ -3125,7 +3036,6 @@ const NetworkSimulator = () => {
           if (newData.vlanId !== undefined) {
             updatedData.vlanId = newData.vlanId;
           }
-          
           return {
             ...node,
             data: updatedData,
@@ -3145,13 +3055,11 @@ const NetworkSimulator = () => {
     const handleKeyDown = (event) => {
       // Игнорируем если модальное окно открыто (чтобы не удалять при вводе текста)
       if (showModal) return;
-      
       if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeId) {
         event.preventDefault();
         deleteNode(selectedNodeId);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -3187,17 +3095,14 @@ const NetworkSimulator = () => {
   const runDHCP = useCallback(async () => {
     if (isRunning) return;
     setIsRunning(true);
-    addLog('🚀 Запуск сети: инициализация DHCP...');
-
+    addLog(' Запуск сети: инициализация DHCP...');
     try {
       // Находим все ПК и ноутбуки без IP
       const devicesNeedingIp = nodes.filter(
         n => ['pc', 'laptop'].includes(n.data.type) && !n.data.ip
       );
-
       // Находим маршрутизатор
       const router = nodes.find(n => n.data.type === 'router');
-
       if (!router) {
         addLog('❌ Ошибка: Маршрутизатор не найден в сети!');
         setIsRunning(false);
@@ -3207,32 +3112,26 @@ const NetworkSimulator = () => {
       // Проверяем соединения для каждого устройства
       for (const device of devicesNeedingIp) {
         const path = findPathWithTrace(device.id, router.id, edges, nodes);
-        
-
         if (path && path.length > 0) {
           // Формируем красивое сообщение о пути
           const pathNodes = path.map(nodeId => {
             const node = nodes.find(n => n.id === nodeId);
             return node ? node.data.label : '';
           });
-          
           const intermediateDevices = pathNodes.slice(1, -1);
           let logMessage = `[DHCP] ${device.data.label} отправил запрос`;
-          
           if (intermediateDevices.length > 0) {
             logMessage += ` через ${intermediateDevices.join(' -> ')}`;
           }
-          
           logMessage += ` к ${router.data.label}`;
           addLog(logMessage);
-          
 
           await animatePacket(device, router, 'dhcp-request');
-          
+
           // Выдаем IP адрес
           const newIp = `192.168.1.${nextIpRef.current}`;
           nextIpRef.current++;
-          
+
           setNodes((nds) =>
             nds.map((node) => {
               if (node.id === device.id) {
@@ -3248,9 +3147,8 @@ const NetworkSimulator = () => {
               return node;
             })
           );
-          
           addLog(`${router.data.label} успешно выдал IP ${newIp} для ${device.data.label}`);
-          
+
           // Небольшая задержка между устройствами
           await new Promise(r => setTimeout(r, 300));
         } else {
@@ -3277,7 +3175,7 @@ const NetworkSimulator = () => {
             return node;
           })
         );
-        addLog('🌐 Сервер-2 назначен как "Внешний Интернет" с IP 8.8.8.8');
+        addLog(' Сервер-2 назначен как "Внешний Интернет" с IP 8.8.8.8');
       }
 
       // Назначаем IP роутеру (внутренний и внешний интерфейс)
@@ -3291,8 +3189,8 @@ const NetworkSimulator = () => {
                   ...node.data,
                   ip: '192.168.1.1',
                   externalIp: '95.24.10.1',
-                  config: { 
-                    ...node.data.config, 
+                  config: {
+                    ...node.data.config,
                     ip: '192.168.1.1',
                     externalIp: '95.24.10.1'
                   },
@@ -3318,35 +3216,27 @@ const NetworkSimulator = () => {
   const checkConnectionToDevice = (fromId, toId, edges, nodes) => {
     const visited = new Set();
     const queue = [{ id: fromId, path: [fromId] }];
-
     while (queue.length > 0) {
       const current = queue.shift();
-      
       if (current.id === toId) {
         return true;
       }
-
       if (visited.has(current.id)) continue;
       visited.add(current.id);
-
       // Находим все соединения от текущего узла
       const connectedEdges = edges.filter(
         e => e.source === current.id || e.target === current.id
       );
-
       for (const edge of connectedEdges) {
         const nextId = edge.source === current.id ? edge.target : edge.source;
-        
         if (!visited.has(nextId)) {
           const nextNode = nodes.find(n => n.id === nextId);
-          
           // Проходим через любые устройства (коммутаторы, маршрутизаторы и т.д.)
           // Главное - найти путь до целевого устройства
           queue.push({ id: nextId, path: [...current.path, nextId] });
         }
       }
     }
-
     return false;
   };
 
@@ -3354,41 +3244,32 @@ const NetworkSimulator = () => {
   const findPathWithTrace = (fromId, toId, edges, nodes) => {
     const visited = new Set();
     const queue = [{ id: fromId, path: [fromId] }];
-
     while (queue.length > 0) {
       const current = queue.shift();
-      
       if (current.id === toId) {
         return current.path;
       }
-
       if (visited.has(current.id)) continue;
       visited.add(current.id);
-
       const connectedEdges = edges.filter(
         e => e.source === current.id || e.target === current.id
       );
-
       for (const edge of connectedEdges) {
         const nextId = edge.source === current.id ? edge.target : edge.source;
-        
         if (!visited.has(nextId)) {
           queue.push({ id: nextId, path: [...current.path, nextId] });
         }
       }
     }
-
     return null;
   };
 
   // Проверка, находятся ли IP-адреса в одной подсети
   const checkIfSameSubnet = useCallback((ip1, ip2, mask) => {
     if (!ip1 || !ip2 || !mask) return false;
-    
     const parts1 = ip1.split('.').map(Number);
     const parts2 = ip2.split('.').map(Number);
     const maskParts = mask.split('.').map(Number);
-    
     for(let i=0; i<4; i++) {
       if ((parts1[i] & maskParts[i]) !== (parts2[i] & maskParts[i])) return false;
     }
@@ -3399,30 +3280,23 @@ const NetworkSimulator = () => {
   const checkConnectionBetweenNodes = useCallback((fromId, toId, edges) => {
     const visited = new Set();
     const queue = [fromId];
-
     while (queue.length > 0) {
       const currentId = queue.shift();
-      
       if (currentId === toId) {
         return true;
       }
-
       if (visited.has(currentId)) continue;
       visited.add(currentId);
-
       const connectedEdges = edges.filter(
         e => e.source === currentId || e.target === currentId
       );
-
       for (const edge of connectedEdges) {
         const nextId = edge.source === currentId ? edge.target : edge.source;
-        
         if (!visited.has(nextId)) {
           queue.push(nextId);
         }
       }
     }
-
     return false;
   }, []);
 
@@ -3431,7 +3305,6 @@ const NetworkSimulator = () => {
     // Получаем VLAN ID обоих устройств
     const vlanId1 = node1.data?.vlanId || 1;
     const vlanId2 = node2.data?.vlanId || 1;
-    
     // Если VLAN одинаковый - возвращаем true
     return vlanId1 === vlanId2;
   }, []);
@@ -3440,20 +3313,16 @@ const NetworkSimulator = () => {
   const findPath = (startNodeId, endNodeId, edgesList, nodesList) => {
     let queue = [[startNodeId]];
     let visited = new Set([startNodeId]);
-
     while (queue.length > 0) {
       let path = queue.shift();
       let node = path[path.length - 1];
-
       if (node === endNodeId) {
         return path; // Путь найден
       }
-
       // Находим соседей через edges
       let neighbors = edgesList
         .filter(e => e.source === node || e.target === node)
         .map(e => e.source === node ? e.target : e.source);
-
       for (let neighbor of neighbors) {
         if (!visited.has(neighbor)) {
           visited.add(neighbor);
@@ -3467,7 +3336,6 @@ const NetworkSimulator = () => {
   // Анимация пакета с поддержкой атак и firewall (топологическая проверка)
   const animatePacket = async (fromNode, toNode, type, isAttack = false) => {
     const packetId = `packet-${Date.now()}`;
-    
     // Определяем цвет пакета: красный для атак, желтый для NAT, синий для обычных
     let packetColor = '#4299e1'; // синий по умолчанию
     if (isAttack || type === 'attack') {
@@ -3477,7 +3345,7 @@ const NetworkSimulator = () => {
     } else if (type === 'dhcp-request') {
       packetColor = '#48bb78'; // зеленый для DHCP
     }
-    
+
     setPackets(prev => [...prev, {
       id: packetId,
       from: fromNode.position,
@@ -3493,11 +3361,10 @@ const NetworkSimulator = () => {
     // Для атак: проверяем наличие активного Firewall НА ПУТИ между источником и целью
     let firewallOnPath = null;
     let isBlocked = false;
-    
+
     if (isAttack) {
       // 1. Находим путь от источника к цели
       const path = findPath(fromNode.id, toNode.id, edges, nodes);
-      
       if (!path) {
         // Пути нет физически - атака не может дойти
         addLog(`⚠️ Атака на ${toNode.data.label} не удалась: нет соединения с ${fromNode.data.label}`);
@@ -3506,21 +3373,21 @@ const NetworkSimulator = () => {
         }, 500);
         return;
       }
-      
+
       // 2. Проверяем, есть ли на пути активный Firewall
+      // ✅ ИСПРАВЛЕНИЕ: node.data.type вместо node.type
       for (let nodeId of path) {
         const node = nodes.find(n => n.id === nodeId);
-        if (node && node.type === 'firewall' && node.data.isActive !== false) {
+        if (node && node.data.type === 'firewall' && node.data.isActive === true) {
           firewallOnPath = node;
           isBlocked = true;
           break;
         }
       }
-      
       console.log('🔍 Путь атаки:', path);
       console.log('🛡️ Firewall на пути:', firewallOnPath ? firewallOnPath.data.label : 'Нет');
     }
-    
+
     // Анимация движения пакета
     for (let i = 0; i <= 100; i += 10) {
       await new Promise(r => setTimeout(r, 50));
@@ -3537,7 +3404,6 @@ const NetworkSimulator = () => {
           x: firewallOnPath.position.x + 25,
           y: firewallOnPath.position.y + 25,
         }]);
-        
         // Удаляем взрыв через 500мс
         setTimeout(() => {
           setExplosions(prev => prev.filter(e => e.id !== explosionId));
@@ -3547,8 +3413,8 @@ const NetworkSimulator = () => {
         setPackets(prev => prev.filter(p => p.id !== packetId));
         return; // Прерываем анимацию
       }
-      
-      setPackets(prev => prev.map(p => 
+
+      setPackets(prev => prev.map(p =>
         p.id === packetId ? { ...p, progress: i } : p
       ));
     }
@@ -3572,27 +3438,22 @@ const NetworkSimulator = () => {
 
     setPackets(prev => prev.filter(p => p.id !== packetId));
   };
-  
+
   // Функция запуска DDoS атаки
   const triggerDDoSAttack = useCallback(() => {
     const hackers = nodes.filter(n => n.data.type === 'hacker');
     const servers = nodes.filter(n => n.data.type === 'server');
-    
     if (servers.length === 0) {
       addLog('❌ Нет серверов для атаки! Добавьте сервер на холст.');
       return;
     }
-    
     const targetServer = servers[0];
     const attackers = hackers.length > 0 ? hackers : nodes.filter(n => ['pc', 'laptop'].includes(n.data.type));
-    
     if (attackers.length === 0) {
       addLog('❌ Нет устройств для запуска атаки! Добавьте Хакера или ПК.');
       return;
     }
-    
     addLog(`⚠️ ЗАПУЩЕНА DDoS АТАКА на ${targetServer.data.label}!`);
-    
     // Запускаем множественные пакеты от разных источников
     attackers.forEach((attacker, index) => {
       setTimeout(() => {
@@ -3600,25 +3461,21 @@ const NetworkSimulator = () => {
       }, index * 200);
     });
   }, [nodes, addLog]);
-  
+
   // Функция сканирования портов
   const triggerPortScan = useCallback(() => {
     const hackers = nodes.filter(n => n.data.type === 'hacker');
     const allDevices = nodes.filter(n => ['server', 'pc', 'laptop', 'router'].includes(n.data.type));
-    
     if (hackers.length === 0) {
       addLog('❌ Нет Хакера для сканирования! Добавьте устройство Хакер.');
       return;
     }
-    
     if (allDevices.length === 0) {
       addLog('❌ Нет устройств для сканирования!');
       return;
     }
-    
     const hacker = hackers[0];
-    addLog(`🔍 ${hacker.data.label} начинает сканирование портов...`);
-    
+    addLog(` ${hacker.data.label} начинает сканирование портов...`);
     allDevices.forEach((device, index) => {
       setTimeout(() => {
         animatePacket(hacker, device, 'port-scan', true);
@@ -3639,7 +3496,6 @@ const NetworkSimulator = () => {
     }
 
     addLog(`🖥️ ${sourceNode.data.label} отправляет ping на ${targetIp}...`);
-
     // Пакет от ПК к роутеру (внутренний IP)
     await animatePacket(sourceNode, router, 'ping-internal');
     addLog(`📦 Пакет от ${sourceNode.data.ip} прибыл на маршрутизатор`);
@@ -3647,16 +3503,15 @@ const NetworkSimulator = () => {
     // Проверка: если пингуем внешний сервер, применяем NAT
     if (server && server.data.ip === targetIp && server.data.isExternal) {
       addLog(`[NAT] Замена внутреннего IP ${sourceNode.data.ip} на внешний IP шлюза ${router.data.externalIp} для отправки в Интернет`);
-      
       // Анимация пакета с измененным цветом (NAT)
       await animatePacket(router, server, 'nat');
       addLog(`📦 NAT-пакет от ${router.data.externalIp} прибыл на Сервер (${targetIp})`);
-      
+
       // Ответ от сервера
       await new Promise(r => setTimeout(r, 200));
-      addLog(`📦 Сервер отправляет ответ на ${router.data.externalIp}`);
+      addLog(` Сервер отправляет ответ на ${router.data.externalIp}`);
       await animatePacket(server, router, 'nat');
-      
+
       // Обратный NAT
       addLog(`[NAT] Обратная замена: ${router.data.externalIp} -> ${sourceNode.data.ip}`);
       await animatePacket(router, sourceNode, 'ping-internal');
@@ -3695,16 +3550,15 @@ const NetworkSimulator = () => {
             deleteKeyCode={showModal ? null : ['Delete', 'Backspace']}
           >
             <Background color="#4a5568" gap={20} size={1} />
-            
-            <Controls 
+            <Controls
               style={{
                 background: '#2d3748',
                 borderRadius: '8px',
                 border: '1px solid #4a5568',
               }}
             />
-            <MiniMap 
-              position="top-left" 
+            <MiniMap
+              position="top-left"
               style={{ backgroundColor: '#141822', border: '1px solid #1f2433', borderRadius: '8px' }}
               nodeColor="#1b2330"
               nodeStrokeColor="#3b82f6"
@@ -3729,7 +3583,7 @@ const NetworkSimulator = () => {
               />
             );
           })}
-          
+
           {/* ВЗРЫВЫ (анимация блокировки firewall) */}
           {explosions.map(explosion => (
             <div
@@ -3764,10 +3618,10 @@ const NetworkSimulator = () => {
         {/* СИСТЕМНЫЙ ЖУРНАЛ - плавающий по центру внизу */}
         <div style={styles.logPanel}>
           <div style={styles.logTitle}>📋 Системный журнал событий</div>
-          <div 
-            ref={logContainerRef} 
+          <div
+            ref={logContainerRef}
             onScroll={handleLogScroll}
-            style={{ 
+            style={{
               maxHeight: '130px',
               minHeight: '80px',
               overflowY: 'auto',
@@ -3791,7 +3645,7 @@ const NetworkSimulator = () => {
         {/* ВЕРХНЯЯ ЗОНА - Скроллируемая библиотека устройств */}
         <div style={styles.sidebarTop}>
           <div style={styles.sidebarTitle}>📦 Библиотека Устройств</div>
-          
+
           {/* Блок 1: Конечные узлы */}
           <div>
             <div
@@ -3894,7 +3748,7 @@ const NetworkSimulator = () => {
                     borderColor: '#991b1b',
                   }}
                 >
-                  <span style={styles.icon}>🔴</span>
+                  <span style={styles.icon}></span>
                   <span>Hacker PC</span>
                 </button>
                 <button
@@ -3922,16 +3776,15 @@ const NetworkSimulator = () => {
 
         {/* СРЕДНЯЯ ЗОНА - Панель Действий */}
         <div style={styles.sidebarMiddle}>
-          <div style={styles.sectionTitle}>🚀 Панель Действий</div>
-          
+          <div style={styles.sectionTitle}> Панель Действий</div>
+
           {/* === КНОПКА НАСТРОЙКИ И ТЕРМИНАЛ === */}
           <div style={{ marginBottom: '20px' }}>
-            <button 
+            <button
               onClick={() => {
                 console.log('🔧 Кнопка "Настройки и Терминал" нажата!');
                 console.log('   selectedNode:', selectedNode);
                 console.log('   selectedNodeId:', selectedNodeId);
-                
                 if (selectedNode) {
                   console.log('   ✅ Открываем модалку для:', selectedNode.data.label);
                   setIsSettingsOpen(true);
@@ -3945,8 +3798,8 @@ const NetworkSimulator = () => {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: selectedNode 
-                  ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' 
+                background: selectedNode
+                  ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
                   : '#374151',
                 color: '#fff',
                 border: 'none',
@@ -3975,15 +3828,14 @@ const NetworkSimulator = () => {
                 }
               }}
             >
-              <span style={{ fontSize: '18px' }}>⚙️</span>
+              <span style={{ fontSize: '18px' }}>️</span>
               Настройки и Терминал
             </button>
-            
             {!selectedNode && (
-              <p style={{ 
-                fontSize: '12px', 
-                color: '#9ca3af', 
-                textAlign: 'center', 
+              <p style={{
+                fontSize: '12px',
+                color: '#9ca3af',
+                textAlign: 'center',
                 marginTop: '8px',
                 fontStyle: 'italic'
               }}>
@@ -3991,7 +3843,7 @@ const NetworkSimulator = () => {
               </p>
             )}
           </div>
-          
+
           {/* Главная кнопка запуска */}
           <button
             onClick={runDHCP}
@@ -4014,7 +3866,6 @@ const NetworkSimulator = () => {
           {/* Секция атак */}
           <div style={styles.divider} />
           <div style={styles.sectionLabel}>⚔️ Симуляция Атак</div>
-          
           <button
             onClick={triggerDDoSAttack}
             onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.attackButtonDDoSHover)}
@@ -4023,7 +3874,6 @@ const NetworkSimulator = () => {
           >
             <span>🔴 DDoS Атака</span>
           </button>
-          
           <button
             onClick={triggerPortScan}
             onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.attackButtonScanHover)}
@@ -4036,7 +3886,6 @@ const NetworkSimulator = () => {
           {/* Управление - полезные действия */}
           <div style={styles.divider} />
           <div style={styles.sectionLabel}>🔧 Управление</div>
-          
           <input
             type="file"
             accept="image/*"
@@ -4044,7 +3893,6 @@ const NetworkSimulator = () => {
             style={{ display: 'none' }}
             onChange={handlePlanUpload}
           />
-          
           <input
             type="file"
             accept=".json,application/json"
@@ -4052,7 +3900,7 @@ const NetworkSimulator = () => {
             style={{ display: 'none' }}
             onChange={handleImportScheme}
           />
-          
+
           {!nodes.some(n => n.id === 'office-plan-bg') ? (
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -4069,10 +3917,10 @@ const NetworkSimulator = () => {
               onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: '#1f2937', color: '#ef4444' })}
               style={{ ...styles.actionButton, ...styles.actionButtonRed, marginBottom: '8px' }}
             >
-              <span>❌ Удалить план</span>
+              <span> Удалить план</span>
             </button>
           )}
-          
+
           {/* Экспорт/Импорт схемы */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <button
@@ -4114,7 +3962,7 @@ const NetworkSimulator = () => {
               📂 Импорт
             </button>
           </div>
-          
+
           {/* ОПАСНАЯ ЗОНА */}
           <div style={{
             marginTop: '16px',
@@ -4133,7 +3981,6 @@ const NetworkSimulator = () => {
             }}>
               ⚠️ Опасная зона
             </div>
-            
             <button
               onClick={() => {
                 const hasSelected = getNodes()?.some(n => n.selected);
@@ -4167,7 +4014,6 @@ const NetworkSimulator = () => {
             >
               🗑️ Удалить выбранное
             </button>
-            
             <button
               onClick={() => {
                 if (window.confirm('Вы уверены, что хотите очистить всю схему? Это действие нельзя отменить!')) {
@@ -4189,7 +4035,6 @@ const NetworkSimulator = () => {
             >
               <span>⚠️ Очистить всё</span>
             </button>
-            
             <button
               onClick={() => {
                 if (window.confirm('Вы уверены, что хотите сбросить LocalStorage? Все сохранённые данные будут удалены!')) {
@@ -4213,9 +4058,9 @@ const NetworkSimulator = () => {
               🔄 Сброс LocalStorage
             </button>
           </div>
-          
+
           {/* Кнопка Справка и Инструкция - OUTLINE стиль */}
-          <button 
+          <button
             onClick={() => setShowHelpModal(true)}
             style={{
               width: '100%',
@@ -4331,17 +4176,17 @@ const NetworkSimulator = () => {
       {/* МОДАЛЬНОЕ ОКНО НАСТРОЕК УСТРОЙСТВА - ГЛОБАЛЬНЫЙ ОВЕРЛЕЙ */}
       {showModal && selectedNode && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div 
-            style={{ 
-              background: '#1a1f2c', 
-              borderRadius: '12px', 
-              padding: '0', 
-              width: '600px', 
-              maxWidth: '90%', 
-              border: '1px solid #2d3548', 
+          <div
+            style={{
+              background: '#1a1f2c',
+              borderRadius: '12px',
+              padding: '0',
+              width: '600px',
+              maxWidth: '90%',
+              border: '1px solid #2d3548',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
               overflow: 'hidden'
-            }} 
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <DeviceModal
@@ -4363,43 +4208,43 @@ const NetworkSimulator = () => {
 
       {/* НОВОЕ МОДАЛЬНОЕ ОКНО "НАСТРОЙКИ И ТЕРМИНАЛ" - ПЕРЕТАСКИВАЕМОЕ */}
       {isSettingsOpen && selectedNode && (
-        <div 
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100vw', 
-            height: '100vh', 
-            backgroundColor: 'rgba(0,0,0,0.75)', 
-            zIndex: 2000 
-          }} 
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0,0,0,0.75)',
+            zIndex: 2000
+          }}
           onClick={() => setIsSettingsOpen(false)}
         >
-          <div 
+          <div
             ref={modalRef}
-            style={{ 
+            style={{
               position: 'absolute',
               left: modalPosition.x,
               top: modalPosition.y,
-              backgroundColor: '#141822', 
-              border: '2px solid #2d3548', 
-              borderRadius: '12px', 
-              width: '600px', 
-              padding: '0', 
+              backgroundColor: '#141822',
+              border: '2px solid #2d3548',
+              borderRadius: '12px',
+              width: '600px',
+              padding: '0',
               overflow: 'hidden',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
               cursor: isDragging ? 'grabbing' : 'default'
-            }} 
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Заголовок с кнопкой закрытия - зона для перетаскивания */}
-            <div 
-              style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '20px 25px', 
-                borderBottom: '1px solid #2d3548', 
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '20px 25px',
+                borderBottom: '1px solid #2d3548',
                 background: '#161b22',
                 cursor: 'grab',
                 userSelect: 'none'
@@ -4409,33 +4254,33 @@ const NetworkSimulator = () => {
               <h3 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>⚙️ Настройки и Терминал: {selectedNode.data.label}</h3>
               <button onClick={() => setIsSettingsOpen(false)} style={{ background: 'transparent', border: 'none', color: '#a0aec0', fontSize: '24px', cursor: 'pointer', padding: '5px 10px', borderRadius: '4px' }}>✕</button>
             </div>
-            
+
             {/* Вкладки */}
             <div style={{ display: 'flex', gap: '10px', padding: '15px 25px', borderBottom: '1px solid #2d3548', background: '#1a1f2c' }}>
-              <button 
+              <button
                 onClick={() => setActiveTab('settings')}
-                style={{ 
-                  padding: '10px 20px', 
-                  background: activeTab === 'settings' ? '#3b82f6' : '#2d3748', 
-                  border: 'none', 
-                  borderRadius: '6px', 
-                  color: '#fff', 
-                  cursor: 'pointer', 
+                style={{
+                  padding: '10px 20px',
+                  background: activeTab === 'settings' ? '#3b82f6' : '#2d3748',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
                 }}
               >
                 🌐 НАСТРОЙКИ
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('terminal')}
-                style={{ 
-                  padding: '10px 20px', 
-                  background: activeTab === 'terminal' ? '#3b82f6' : '#2d3748', 
-                  border: 'none', 
-                  borderRadius: '6px', 
-                  color: '#fff', 
-                  cursor: 'pointer', 
+                style={{
+                  padding: '10px 20px',
+                  background: activeTab === 'terminal' ? '#3b82f6' : '#2d3748',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
                 }}
@@ -4443,13 +4288,13 @@ const NetworkSimulator = () => {
                 🖥️ ТЕРМИНАЛ
               </button>
             </div>
-            
+
             {/* Содержимое вкладок */}
             <div style={{ padding: '25px' }}>
               {activeTab === 'settings' && (
-                <SettingsTabContent 
-                  node={selectedNode} 
-                  onUpdate={updateNodeData} 
+                <SettingsTabContent
+                  node={selectedNode}
+                  onUpdate={updateNodeData}
                   onClose={() => setIsSettingsOpen(false)}
                   onAddLog={addLog}
                   nodes={nodes}
@@ -4460,8 +4305,8 @@ const NetworkSimulator = () => {
                 />
               )}
               {activeTab === 'terminal' && (
-                <TerminalTabContent 
-                  node={selectedNode} 
+                <TerminalTabContent
+                  node={selectedNode}
                   nodes={nodes}
                   edges={edges}
                   checkConnectionBetweenNodes={checkConnectionBetweenNodes}
@@ -4483,239 +4328,4 @@ const NetworkSimulator = () => {
   );
 };
 
-// ==================== КОМПОНЕНТ HELP MODAL С АККОРДЕОНАМИ ====================
-const HelpModal = ({ onClose }) => {
-  const [openSection, setOpenSection] = useState('getting-started');
-
-  const toggleSection = (section) => {
-    setOpenSection(openSection === section ? null : section);
-  };
-
-  const SectionHeader = ({ icon, title, id }) => (
-    <button
-      onClick={() => toggleSection(id)}
-      style={{
-        width: '100%',
-        padding: '16px',
-        background: openSection === id ? '#1e40af' : '#334155',
-        border: 'none',
-        borderRadius: '8px',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        marginBottom: '8px',
-        transition: 'all 0.3s ease'
-      }}
-      onMouseOver={(e) => e.currentTarget.style.background = openSection === id ? '#1e40af' : '#475569'}
-      onMouseOut={(e) => e.currentTarget.style.background = openSection === id ? '#1e40af' : '#334155'}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '18px' }}>{icon}</span>
-        <span>{title}</span>
-      </div>
-      <span style={{ fontSize: '20px', transition: 'transform 0.3s', transform: openSection === id ? 'rotate(45deg)' : 'rotate(0deg)' }}>
-        +
-      </span>
-    </button>
-  );
-
-  const SectionContent = ({ children, id }) => (
-    <div style={{
-      maxHeight: openSection === id ? '500px' : '0',
-      overflow: 'hidden',
-      transition: 'max-height 0.3s ease',
-      marginBottom: '12px',
-      padding: openSection === id ? '16px' : '0',
-      background: '#0f172a',
-      borderRadius: '8px',
-      border: openSection === id ? '1px solid #1e40af' : '1px solid transparent'
-    }}>
-      {children}
-    </div>
-  );
-
-  return (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0, 0, 0, 0.85)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        animation: 'fadeIn 0.3s ease'
-      }}
-      onClick={onClose}
-    >
-      <div 
-        style={{
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          border: '2px solid #3b82f6',
-          borderRadius: '16px',
-          padding: '28px',
-          width: '90%',
-          maxWidth: '700px',
-          maxHeight: '85vh',
-          overflowY: 'auto',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.7), 0 0 100px rgba(59, 130, 246, 0.2)',
-          animation: 'slideIn 0.3s ease'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Заголовок */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '2px solid #3b82f6'
-        }}>
-          <h2 style={{ 
-            color: '#fff', 
-            margin: 0, 
-            fontSize: '24px',
-            background: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 'bold'
-          }}>
-            📖 Справка и Инструкция
-          </h2>
-          <button 
-            onClick={onClose} 
-            style={{
-              background: '#ef4444',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s',
-              boxShadow: '0 4px 6px rgba(239, 68, 68, 0.3)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = '#dc2626';
-              e.currentTarget.style.transform = 'scale(1.1)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = '#ef4444';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Секции */}
-        <SectionHeader icon="🚀" title="Начало работы" id="getting-started" />
-        <SectionContent id="getting-started">
-          <ol style={{ paddingLeft: '20px', margin: 0 }}>
-            <li>Добавьте устройства из панели справа (ПК, коммутаторы, серверы).</li>
-            <li>Соедините их линиями: нажмите на порт (синий кружок) и перетащите к другому устройству.</li>
-            <li>Настройте IP-адреса и VLAN через кнопку "Настройки и Терминал".</li>
-            <li>Запустите сеть кнопкой "Запустить сеть (DHCP)".</li>
-          </ol>
-        </SectionContent>
-
-        <SectionHeader icon="🌐" title="Настройка VLAN" id="vlan-config" />
-        <SectionContent id="vlan-config">
-          <div style={{ paddingLeft: '20px' }}>
-            <p><strong>1. На коммутаторе:</strong></p>
-            <ul>
-              <li>Откройте настройки Коммутатора L2</li>
-              <li>Добавьте VLAN (ID: 10, Name: HR)</li>
-            </ul>
-            <p><strong>2. На устройствах:</strong></p>
-            <ul>
-              <li>Откройте настройки ПК</li>
-              <li>Выберите VLAN из списка</li>
-            </ul>
-            <p style={{ color: '#fbbf24' }}>⚠️ Устройства в разных VLAN не могут общаться напрямую!</p>
-          </div>
-        </SectionContent>
-
-        <SectionHeader icon="🛡️" title="Симуляция атак" id="security" />
-        <SectionContent id="security">
-          <div style={{ paddingLeft: '20px' }}>
-            <ol>
-              <li>Добавьте <strong>Hacker PC</strong> и <strong>Server</strong></li>
-              <li>Соедините их через <strong>Firewall</strong></li>
-              <li>В настройках Firewall включите/выключите защиту</li>
-              <li>Запустите <strong>DDoS-атаку</strong> из панели справа</li>
-            </ol>
-            <p style={{ color: '#10b981' }}>✅ Если Firewall активен - атака блокируется</p>
-            <p style={{ color: '#ef4444' }}>❌ Если Firewall выключен - сервер заражается (краснеет)</p>
-          </div>
-        </SectionContent>
-
-        <SectionHeader icon="💾" title="Сохранение проекта" id="saving" />
-        <SectionContent id="saving">
-          <div style={{ paddingLeft: '20px' }}>
-            <p>Проект сохраняется <strong>автоматически</strong> в LocalStorage.</p>
-            <p><strong>Экспорт:</strong> Нажмите "Экспорт" для скачивания файла .json</p>
-            <p><strong>Импорт:</strong> Нажмите "Импорт" для загрузки сохраненной схемы</p>
-          </div>
-        </SectionContent>
-
-        <SectionHeader icon="🔧" title="Устранение неполадок" id="troubleshooting" />
-        <SectionContent id="troubleshooting">
-          <div style={{ paddingLeft: '20px' }}>
-            <p><strong>Не могу соединить устройства:</strong></p>
-            <ul>
-              <li>Убедитесь, что используете все 4 порта (верх, низ, лево, право)</li>
-              <li>Не создавайте несколько соединений между одними и теми же портами</li>
-            </ul>
-            <p><strong>Пинг не проходит:</strong></p>
-            <ul>
-              <li>Проверьте, что устройства в одной VLAN</li>
-              <li>Убедитесь, что IP-адреса в одной подсети</li>
-            </ul>
-          </div>
-        </SectionContent>
-
-        {/* Футер */}
-        <div style={{ 
-          marginTop: '24px', 
-          paddingTop: '16px', 
-          borderTop: '1px solid #334155',
-          textAlign: 'center',
-          color: '#64748b',
-          fontSize: '12px'
-        }}>
-          Network Simulator Pro v2.0 | Made with ❤️ by MELS
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideIn {
-          from { transform: translateY(-50px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default function App() {
-  return (
-    <ReactFlowProvider>
-      <NetworkSimulator />
-    </ReactFlowProvider>
-  );
-}
+// ==================== КОМПОНЕНТ HELP MODAL С АККОРДЕОН
