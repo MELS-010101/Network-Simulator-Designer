@@ -17,7 +17,7 @@
 
 ##  Скриншот / Screenshot
 
-![Network Simulator Interface](https://i.imgur.com/your-screenshot.png)
+![Network Simulator Interface]([https://i.imgur.com/your-screenshot.png](https://github.com/MELS-010101/Network-Simulator-Designer/blob/main/test.png))
 *Основной интерфейс симулятора с планом офиса / Main simulator interface with office layout*
 
 ---
