@@ -71,6 +71,10 @@ const styles = {
     color: '#eee',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     overflow: 'hidden',
+     transform: 'scale(0.75)',
+    transformOrigin: '0 0',
+    width: '133.33vw',  // 100 / 0.75
+    height: '133.33vh', // 100 / 0.75
   },
   // РАБОЧАЯ ОБЛАСТЬ (левая часть) - содержит холст и журнал
   workspace: {
@@ -3510,7 +3514,7 @@ const NetworkSimulator = () => {
       // 2. Проверяем, есть ли на пути активный Firewall
       for (let nodeId of path) {
         const node = nodes.find(n => n.id === nodeId);
-      if (node && node.data.type === 'firewall' && node.data.isActive === true) {
+        if (node && node.type === 'firewall' && node.data.isActive !== false) {
           firewallOnPath = node;
           isBlocked = true;
           break;
@@ -4033,7 +4037,7 @@ const NetworkSimulator = () => {
             <span>🟠 Скан портов</span>
           </button>
 
-          {/* Управление - полезные действия */}
+          {/* Управление */}
           <div style={styles.divider} />
           <div style={styles.sectionLabel}>🔧 Управление</div>
           
@@ -4053,12 +4057,41 @@ const NetworkSimulator = () => {
             onChange={handleImportScheme}
           />
           
+          {/* Кнопка Удалить выбранное */}
+          <button
+            onClick={handleDeleteSelected}
+            disabled={!getNodes()?.some(n => n.selected)}
+            onMouseOver={(e) => {
+              if (!getNodes()?.some(n => n.selected)) return;
+              Object.assign(e.currentTarget.style, { background: '#ef4444', color: '#fff' });
+            }}
+            onMouseOut={(e) => {
+              Object.assign(e.currentTarget.style, { background: 'transparent', color: '#ef4444' });
+            }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '8px',
+              background: 'transparent',
+              border: '1px solid #ef4444',
+              color: getNodes()?.some(n => n.selected) ? '#ef4444' : '#6b7280',
+              borderRadius: '6px',
+              cursor: getNodes()?.some(n => n.selected) ? 'pointer' : 'not-allowed',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              opacity: getNodes()?.some(n => n.selected) ? 1 : 0.5,
+              transition: 'all 0.2s',
+            }}
+          >
+            🗑️ Удалить выбранное
+          </button>
+          
           {!nodes.some(n => n.id === 'office-plan-bg') ? (
             <button
               onClick={() => fileInputRef.current?.click()}
               onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.actionButtonBlueHover)}
               onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: '#1f2937', color: '#3b82f6' })}
-              style={{ ...styles.actionButton, ...styles.actionButtonBlue, marginBottom: '8px' }}
+              style={{ ...styles.actionButton, ...styles.actionButtonBlue }}
             >
               <span>🗺️ Загрузить план офиса</span>
             </button>
@@ -4067,14 +4100,14 @@ const NetworkSimulator = () => {
               onClick={handleRemovePlan}
               onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.actionButtonRedHover)}
               onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: '#1f2937', color: '#ef4444' })}
-              style={{ ...styles.actionButton, ...styles.actionButtonRed, marginBottom: '8px' }}
+              style={{ ...styles.actionButton, ...styles.actionButtonRed }}
             >
               <span>❌ Удалить план</span>
             </button>
           )}
           
           {/* Экспорт/Импорт схемы */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
             <button
               onClick={handleExportScheme}
               onMouseOver={(e) => Object.assign(e.currentTarget.style, { background: '#374151', borderColor: '#60a5fa' })}
@@ -4115,118 +4148,53 @@ const NetworkSimulator = () => {
             </button>
           </div>
           
-          {/* ОПАСНАЯ ЗОНА */}
-          <div style={{
-            marginTop: '16px',
-            background: 'rgba(239, 68, 68, 0.05)',
-            border: '1px dashed #ef4444',
-            borderRadius: '8px',
-            padding: '12px'
-          }}>
-            <div style={{
-              fontSize: '11px',
-              fontWeight: '700',
-              color: '#f87171',
-              marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              ⚠️ Опасная зона
-            </div>
-            
-            <button
-              onClick={() => {
-                const hasSelected = getNodes()?.some(n => n.selected);
-                if (!hasSelected) return;
-                if (window.confirm('Вы уверены, что хотите удалить выбранные устройства?')) {
-                  handleDeleteSelected();
-                }
-              }}
-              disabled={!getNodes()?.some(n => n.selected)}
-              onMouseOver={(e) => {
-                if (!getNodes()?.some(n => n.selected)) return;
-                Object.assign(e.currentTarget.style, { background: '#ef4444', color: '#fff' });
-              }}
-              onMouseOut={(e) => {
-                Object.assign(e.currentTarget.style, { background: 'transparent', color: '#ef4444' });
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                marginBottom: '8px',
-                background: 'transparent',
-                border: '1px solid #ef4444',
-                color: getNodes()?.some(n => n.selected) ? '#ef4444' : '#6b7280',
-                borderRadius: '6px',
-                cursor: getNodes()?.some(n => n.selected) ? 'pointer' : 'not-allowed',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                opacity: getNodes()?.some(n => n.selected) ? 1 : 0.5,
-                transition: 'all 0.2s',
-              }}
-            >
-              🗑️ Удалить выбранное
-            </button>
-            
-            <button
-              onClick={() => {
-                if (window.confirm('Вы уверены, что хотите очистить всю схему? Это действие нельзя отменить!')) {
-                  setNodes([]);
-                  setEdges([]);
-                  setLogs([]);
-                  addLog('🗑️ Рабочая область очищена');
-                }
-              }}
-              onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.actionButtonDangerOutlineHover)}
-              onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: 'transparent', color: '#f87171' })}
-              style={{
-                ...styles.actionButton,
-                ...styles.actionButtonDangerOutline,
-                width: '100%',
-                marginBottom: '8px',
-                background: 'transparent',
-              }}
-            >
-              <span>⚠️ Очистить всё</span>
-            </button>
-            
-            <button
-              onClick={() => {
-                if (window.confirm('Вы уверены, что хотите сбросить LocalStorage? Все сохранённые данные будут удалены!')) {
-                  handleHardReset();
-                }
-              }}
-              onMouseOver={(e) => Object.assign(e.currentTarget.style, { background: '#7f1d1d', color: '#fff' })}
-              onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: 'transparent', color: '#9ca3af' })}
-              style={{
-                width: '100%',
-                padding: '8px',
-                background: 'transparent',
-                border: '1px dashed #4b5563',
-                color: '#9ca3af',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '11px',
-                transition: 'all 0.2s',
-              }}
-            >
-              🔄 Сброс LocalStorage
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setNodes([]);
+              setEdges([]);
+              setLogs([]);
+              addLog('🗑️ Рабочая область очищена');
+            }}
+            onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.actionButtonDangerOutlineHover)}
+            onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: '#1f2937', color: '#f87171' })}
+            style={{ ...styles.actionButton, ...styles.actionButtonDangerOutline, marginTop: '8px' }}
+          >
+            <span>⚠️ Очистить всё</span>
+          </button>
           
-          {/* Кнопка Справка и Инструкция - OUTLINE стиль */}
+          <button
+            onClick={handleHardReset}
+            onMouseOver={(e) => Object.assign(e.currentTarget.style, { background: '#7f1d1d', color: '#fff' })}
+            onMouseOut={(e) => Object.assign(e.currentTarget.style, { background: '#1f2937', color: '#9ca3af' })}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginTop: '8px',
+              background: '#1f2937',
+              border: '1px dashed #4b5563',
+              color: '#9ca3af',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '11px',
+              transition: 'all 0.2s',
+            }}
+          >
+            🔄 Сброс LocalStorage
+          </button>
+          
+          {/* Кнопка Справка и Инструкция */}
           <button 
             onClick={() => setShowHelpModal(true)}
             style={{
               width: '100%',
               padding: '10px',
-              marginTop: '16px',
+              marginTop: '12px',
               background: 'transparent',
-              border: '1px solid #475569',
-              color: '#94a3b8',
+              border: '1px solid #3b82f6',
+              color: '#60a5fa',
               borderRadius: '6px',
               cursor: 'pointer',
-              fontWeight: '600',
+              fontWeight: 'bold',
               fontSize: '13px',
               display: 'flex',
               alignItems: 'center',
@@ -4235,95 +4203,27 @@ const NetworkSimulator = () => {
               transition: 'all 0.2s',
             }}
             onMouseOver={(e) => {
-              e.target.style.borderColor = '#3b82f6';
-              e.target.style.color = '#60a5fa';
+              e.target.style.background = '#3b82f6';
+              e.target.style.color = '#fff';
             }}
             onMouseOut={(e) => {
-              e.target.style.borderColor = '#475569';
-              e.target.style.color = '#94a3b8';
+              e.target.style.background = 'transparent';
+              e.target.style.color = '#60a5fa';
             }}
           >
             ❓ Справка и Инструкция
           </button>
         </div>
 
-        {/* НИЖНЯЯ ЗОНА - Mini-Dashboard со статистикой */}
+        {/* НИЖНЯЯ ЗОНА - Sticky Footer со статистикой */}
         <div style={styles.sidebarFooter}>
-          <div style={{
-            background: '#0f172a',
-            borderRadius: '12px',
-            padding: '14px',
-            border: '1px solid #1e293b',
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: '#34d399',
-                }}>
-                  {nodes.filter(n => n.type === 'custom').length}
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  marginTop: '2px'
-                }}>
-                  Устройств
-                </div>
-              </div>
-              <div style={{
-                width: '1px',
-                height: '40px',
-                background: '#1e293b',
-                margin: '0 8px'
-              }} />
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: '#60a5fa',
-                }}>
-                  {edges.length}
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  marginTop: '2px'
-                }}>
-                  Связей
-                </div>
-              </div>
-              <div style={{
-                width: '1px',
-                height: '40px',
-                background: '#1e293b',
-                margin: '0 8px'
-              }} />
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: '#fbbf24',
-                }}>
-                  {logs.length}
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  marginTop: '2px'
-                }}>
-                  Событий
-                </div>
-              </div>
-            </div>
+          <div style={styles.statRow}>
+            <span>Устройств:</span>
+            <span style={styles.statValue}>{nodes.filter(n => n.type === 'custom').length}</span>
+          </div>
+          <div style={{ ...styles.statRow, marginTop: '4px' }}>
+            <span>Связей:</span>
+            <span style={styles.statValue}>{edges.length}</span>
           </div>
         </div>
       </div>
