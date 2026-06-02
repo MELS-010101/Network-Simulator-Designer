@@ -71,10 +71,6 @@ const styles = {
     color: '#eee',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     overflow: 'hidden',
-     transform: 'scale(0.75)',
-    transformOrigin: '0 0',
-    width: '133.33vw',  // 100 / 0.75
-    height: '133.33vh', // 100 / 0.75
   },
   // РАБОЧАЯ ОБЛАСТЬ (левая часть) - содержит холст и журнал
   workspace: {
@@ -148,6 +144,7 @@ const styles = {
     boxSizing: 'border-box',
     zIndex: 5,
     overflow: 'hidden',
+    zoom: 0.85,
   },
   // Верхняя зона - скроллируемая библиотека устройств
   sidebarTop: {
@@ -3691,6 +3688,7 @@ const NetworkSimulator = () => {
             }}
             nodeTypes={nodeTypes}
             defaultEdgeOptions={defaultEdgeOptions}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.75 }} 
             fitView
             snapToGrid
             snapGrid={[15, 15]}
@@ -3777,6 +3775,7 @@ const NetworkSimulator = () => {
               overflowY: 'auto',
               scrollbarWidth: 'thin',
               WebkitOverflowScrolling: 'touch'
+    
             }}
           >
             {logs.length === 0 ? (
@@ -4614,8 +4613,10 @@ const HelpModal = ({ onClose }) => {
 
 export default function App() {
   return (
-    <ReactFlowProvider>
-      <NetworkSimulator />
-    </ReactFlowProvider>
+    <> 
+      <ReactFlowProvider>
+        <NetworkSimulator />
+      </ReactFlowProvider>
+    </>
   );
 }
